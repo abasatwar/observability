@@ -44,9 +44,12 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
   const [configList, setConfigList] = useState<ConfigList>({});
 
   useEffect(() => {
-    if (data.rawVizData?.dataConfig) {
+    if (
+      data.rawVizData?.[visualizations.vis.name] &&
+      data.rawVizData?.[visualizations.vis.name].dataConfig
+    ) {
       setConfigList({
-        ...data.rawVizData.dataConfig,
+        ...data.rawVizData[visualizations.vis.name].dataConfig,
       });
     } else if (
       visualizations.vis.name !== visChartTypes.HeatMap &&
@@ -63,7 +66,11 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
         metrics: [initialConfigEntry],
       });
     }
-  }, [data.defaultAxes, data.rawVizData?.dataConfig, visualizations.vis.name]);
+  }, [
+    data.defaultAxes,
+    data.rawVizData?.[visualizations.vis.name]?.dataConfig,
+    visualizations.vis.name,
+  ]);
 
   const updateList = (value: string, index: number, name: string, field: string) => {
     let list = { ...configList };
@@ -71,8 +78,11 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
     listItem = {
       ...listItem,
       [field]: value,
-      type: value !== '' ? fields.find((x) => x.name === value).type : '',
     };
+    if (field === 'label') {
+      listItem.type = value !== '' ? fields.find((x) => x.name === value)?.type : '';
+      listItem.name = value;
+    }
     const newList = {
       ...list,
       [name]: [
@@ -88,12 +98,12 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
     const list = { ...configList };
     const arr = [...list[name]];
     arr.splice(index, 1);
-    const y = { ...list, [name]: arr }
+    const y = { ...list, [name]: arr };
     setConfigList(y);
   };
 
   const handleServiceAdd = (name: string) => {
-    let newList = { ...configList, [name]: [...configList[name], newEntry] }
+    let newList = { ...configList, [name]: [...configList[name], initialConfigEntry] };
     setConfigList(newList);
   };
 
@@ -103,11 +113,13 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
         tabId,
         data: {
           ...explorerVisualizations,
-          dataConfig: {
-            metrics: configList.metrics,
-            dimensions: configList.dimensions
-          }
-        }
+          [visualizations.vis.name]: {
+            dataConfig: {
+              metrics: configList.metrics,
+              dimensions: configList.dimensions,
+            },
+          },
+        },
       })
     );
   }

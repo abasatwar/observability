@@ -167,11 +167,9 @@ export const DefaultChartStyles: DefaultChartStylesProps = {
   MarkerSize: 5,
   ShowLegend: 'show',
   LegendPosition: 'v',
- 
 }
 
 export const FILLOPACITY_DIV_FACTOR = 200; 
-
 export interface DefaultGaugeChartParametersProps {
   GaugeTitleSize: number,
   DisplayDefaultGauges: number
@@ -181,4 +179,3 @@ export const DefaultGaugeChartParameters: DefaultGaugeChartParametersProps = {
   GaugeTitleSize: 14,
   DisplayDefaultGauges: 10
 }
-

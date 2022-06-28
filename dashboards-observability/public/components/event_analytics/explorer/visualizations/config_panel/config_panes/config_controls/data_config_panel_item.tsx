@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   EuiTitle,
   EuiComboBox,
@@ -17,62 +17,47 @@ import {
   EuiText,
 } from '@elastic/eui';
 import { useDispatch, useSelector } from 'react-redux';
-import { render as renderExplorerVis, selectExplorerVisualization } from '../../../../../../event_analytics/redux/slices/visualization_slice';
+import {
+  render as renderExplorerVis,
+  selectExplorerVisualization,
+} from '../../../../../../event_analytics/redux/slices/visualization_slice';
 import { AGGREGATION_OPTIONS } from '../../../../../../../../common/constants/explorer';
 import { ButtonGroupItem } from './config_button_group';
 import { visChartTypes } from '../../../../../../../../common/constants/shared';
-import { ConfigList } from '../../../../../../../../common/types/explorer';
 import { TabContext } from '../../../../../hooks';
-
 export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) => {
   const dispatch = useDispatch();
   const { tabId } = useContext<any>(TabContext);
   const explorerVisualizations = useSelector(selectExplorerVisualization)[tabId];
-  const { data } = visualizations;
 
+  const { data } = visualizations;
   const { data: vizData = {}, metadata: { fields = [] } = {} } = data?.rawVizData;
 
-  const initialConfigEntry = {
-    label: '',
-    aggregation: '',
-    custom_label: '',
-    name: '',
-    side: 'right',
-    type: '',
-  };
+  const newEntry = { label: '', aggregation: '', custom_label: '', name: '', side: 'right' };
 
-  const [configList, setConfigList] = useState<ConfigList>({});
+  const [configList, setConfigList] = useState({
+    dimensions: [{ ...newEntry }],
+    metrics: [{ ...newEntry }],
+  });
 
   useEffect(() => {
     if (data.rawVizData?.dataConfig) {
       setConfigList({
         ...data.rawVizData.dataConfig,
       });
-    } else if (
-      visualizations.vis.name !== visChartTypes.HeatMap &&
-      (data.defaultAxes.xaxis || data.defaultAxes.yaxis)
-    ) {
+    } else if (data.defaultAxes.xaxis || data.defaultAxes.yaxis) {
       const { xaxis, yaxis } = data.defaultAxes;
       setConfigList({
         dimensions: [...(xaxis && xaxis)],
         metrics: [...(yaxis && yaxis)],
       });
-    } else {
-      setConfigList({
-        dimensions: [initialConfigEntry, initialConfigEntry],
-        metrics: [initialConfigEntry],
-      });
     }
-  }, [data.defaultAxes, data.rawVizData?.dataConfig, visualizations.vis.name]);
+  }, [data.defaultAxes, data.rawVizData?.dataConfig]);
 
   const updateList = (value: string, index: number, name: string, field: string) => {
     let list = { ...configList };
     let listItem = { ...list[name][index] };
-    listItem = {
-      ...listItem,
-      [field]: value,
-      type: value !== '' ? fields.find((x) => x.name === value).type : '',
-    };
+    listItem = { ...listItem, [field]: value };
     const newList = {
       ...list,
       [name]: [
@@ -88,51 +73,44 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
     const list = { ...configList };
     const arr = [...list[name]];
     arr.splice(index, 1);
-    const y = { ...list, [name]: arr }
+    const y = { ...list, [name]: arr };
     setConfigList(y);
   };
 
   const handleServiceAdd = (name: string) => {
-    let newList = { ...configList, [name]: [...configList[name], newEntry] }
+    let newList = { ...configList, [name]: [...configList[name], newEntry] };
     setConfigList(newList);
   };
 
   const updateChart = () => {
     dispatch(
       renderExplorerVis({
-        tabId,
+        tabId: tabId,
         data: {
           ...explorerVisualizations,
           dataConfig: {
             metrics: configList.metrics,
-            dimensions: configList.dimensions
-          }
-        }
+            dimensions: configList.dimensions,
+          },
+        },
       })
     );
-  }
+  };
 
-  const isPositionButtonVisible = (sectionName: string) =>
+  const isPositionButtonAllow = (sectionName: string) =>
     sectionName === 'metrics' &&
     (visualizations.vis.name === visChartTypes.Line ||
       visualizations.vis.name === visChartTypes.Bar);
 
   const getCommonUI = (lists, sectionName: string) =>
-    lists &&
     lists.map((singleField, index: number) => (
       <>
         <div key={index} className="services">
           <div className="first-division">
-            {sectionName === 'dimensions' && visualizations.vis.name === visChartTypes.HeatMap && (
-              <EuiTitle size="xxs">
-                <h5>{index === 0 ? 'X-Axis' : 'Y-Axis'}</h5>
-              </EuiTitle>
-            )}
-            <EuiPanel color="subdued">
+            <EuiPanel color="subdued" style={{ padding: '0px' }}>
               <EuiFormRow
                 label="Aggregation"
                 labelAppend={
-                  visualizations.vis.name !== visChartTypes.HeatMap &&
                   lists.length !== 1 && (
                     <EuiText size="xs">
                       <EuiIcon
@@ -179,7 +157,7 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
                 />
               </EuiFormRow>
 
-              {isPositionButtonVisible(sectionName) && (
+              {isPositionButtonAllow(sectionName) && (
                 <EuiFormRow label="Side">
                   <ButtonGroupItem
                     legend="Side"
@@ -194,7 +172,7 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
               )}
 
               <EuiSpacer size="s" />
-              {visualizations.vis.name !== visChartTypes.HeatMap && lists.length - 1 === index && (
+              {lists.length - 1 === index && (
                 <EuiFlexItem grow>
                   <EuiButton
                     fullWidth
@@ -208,10 +186,10 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
               )}
             </EuiPanel>
           </div>
-      </div>
+        </div>
         <EuiSpacer size="s" />
       </>
-    ))
+    ));
 
   return (
     <>

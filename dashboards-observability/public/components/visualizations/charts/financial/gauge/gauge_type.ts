@@ -12,6 +12,9 @@ import {
   ConfigValueOptions,
   ConfigThresholds,
   ConfigGaugeValueOptions,
+  InputFieldItem,
+  SwitchButton,
+  ConfigChartOptions
 } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls';
 
 const sharedConfigs = getPlotlySharedConfigs();
@@ -38,26 +41,78 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
         mapTo: 'dataConfig',
         editor: VizDataPanel,
         sections: [
+          // {
+          //   id: 'value_options',
+          //   name: 'Value options',
+          //   editor: ConfigGaugeValueOptions,
+          //   mapTo: 'valueOptions',
+          //   schemas: [
+          //     {
+          //       name: 'Series',
+          //       isSingleSelection: true,
+          //       onChangeHandler: 'setXaxisSelections',
+          //       component: null,
+          //       mapTo: 'series',
+          //     },
+          //     {
+          //       name: 'Value',
+          //       isSingleSelection: false,
+          //       onChangeHandler: 'setYaxisSelections',
+          //       component: null,
+          //       mapTo: 'value',
+          //     },
+          //   ],
+          // },
           {
-            id: 'value_options',
-            name: 'Value options',
-            editor: ConfigGaugeValueOptions,
-            mapTo: 'valueOptions',
+            id: 'chart-styles',
+            name: 'Chart styles',
+            editor: ConfigChartOptions,
+            mapTo: 'chartStyles',
             schemas: [
               {
-                name: 'Series',
-                isSingleSelection: true,
-                onChangeHandler: 'setXaxisSelections',
-                component: null,
-                mapTo: 'series',
+                title: 'Title Size',
+                name: 'Title Size',
+                component: InputFieldItem,
+                mapTo: 'titleSize',
+                eleType: 'input',
               },
               {
-                name: 'Value',
-                isSingleSelection: false,
-                onChangeHandler: 'setYaxisSelections',
-                component: null,
-                mapTo: 'value',
+                title: 'Value Size',
+                name: 'Value Size',
+                component: InputFieldItem,
+                mapTo: 'valueSize',
+                eleType: 'input',
               },
+              // {
+              //   title: 'Legend placement',
+              //   name: 'Legend placement',
+              //   component: ButtonGroupItem,
+              //   mapTo: 'legendPlacement',
+              //   eleType: 'filterButtons',
+              //   props: {
+              //     groupOptions: [
+              //       { label: 'Top', id: 'top' },
+              //       { label: 'Bottom', id: 'bottom' },
+              //     ],
+              //     defaultSelections: [{ name: 'Left', id: "left" }],
+              //   }
+              // },
+              {
+                title: 'Show threshold labels',
+                name: 'Show threshold labels',
+                component: SwitchButton,
+                mapTo: 'showThresholdLabels',
+                eleType: 'switchButton',
+                currentValue: false
+              },
+              {
+                title: 'Show threshold markers',
+                name: 'Show threshold markers',
+                component: SwitchButton,
+                mapTo: 'showThresholdMarkers',
+                eleType: 'switchButton',
+                currentValue: true
+              }
             ],
           },
           {

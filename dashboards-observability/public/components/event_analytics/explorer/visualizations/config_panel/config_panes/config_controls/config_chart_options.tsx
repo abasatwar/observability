@@ -92,6 +92,17 @@ export const ConfigChartOptions = ({
             vizState,
             ...schema.props,
           };
+        } else if (schema.eleType === 'switchButton') {
+          params = {
+            title: schema.name,
+            // currentValue: vizState.hasOwnProperty(schema.mapTo)
+            //   ? vizState[schema.mapTo]
+            //   : schema.currentValue,
+            currentValue: vizState[schema.mapTo],
+            onToggle: handleConfigurationChange(schema.mapTo),
+            vizState,
+            ...schema.props,
+          };
         } else {
           params = {
             paddingTitle: schema.name,

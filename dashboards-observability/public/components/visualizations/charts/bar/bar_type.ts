@@ -13,8 +13,12 @@ import { ConfigAvailability } from '../../../event_analytics/explorer/visualizat
 import { ButtonGroupItem } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_button_group';
 import { ConfigBarChartStyles } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_bar_chart_styles';
 import { SliderConfig } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_style_slider';
-import { ConfigLegend } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_legend';
+import {
+  ConfigLegend,
+  InputFieldItem,
+} from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls';
 import { DefaultChartStyles } from '../../../../../common/constants/shared';
+
 import { ConfigColorTheme } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_color_theme';
 const sharedConfigs = getPlotlySharedConfigs();
 const VIS_CATEGORY = getPlotlyCategory();
@@ -52,26 +56,6 @@ export const createBarTypeDefinition = (params: any) => ({
         mapTo: 'dataConfig',
         editor: VizDataPanel,
         sections: [
-          {
-            id: 'value_options',
-            name: 'Value options',
-            editor: ConfigValueOptions,
-            mapTo: 'valueOptions',
-            schemas: [
-              {
-                name: 'X-axis',
-                isSingleSelection: false,
-                component: null,
-                mapTo: 'xaxis',
-              },
-              {
-                name: 'Y-axis',
-                isSingleSelection: false,
-                component: null,
-                mapTo: 'yaxis',
-              },
-            ],
-          },
           {
             id: 'legend',
             name: 'Legend',
@@ -135,6 +119,12 @@ export const createBarTypeDefinition = (params: any) => ({
                   ],
                   defaultSelections: [{ name: 'Group', id: 'group' }],
                 },
+              },
+              {
+                name: 'Label Size',
+                component: InputFieldItem,
+                mapTo: 'labelSize',
+                eleType: 'input',
               },
               {
                 name: 'Rotate bar labels',

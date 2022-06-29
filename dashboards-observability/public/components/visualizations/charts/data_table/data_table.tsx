@@ -54,16 +54,7 @@ export const DataTable = ({ visualizations, layout, config }: any) => {
   }, []);
 
   // rows and columns
-  console.log("jsonData===", jsonData)
   const raw_data = [...jsonData];
-  // const raw_data = useMemo(() => {
-  //   return jsonData.map((i: any) => {
-  //     return {
-  //       [`${i}`] : 
-  //     }
-  //   })
-  // }, [])
-
   const columns = fields.map((field: any) => {
     return {
       lockVisible: true,
@@ -81,8 +72,6 @@ export const DataTable = ({ visualizations, layout, config }: any) => {
     };
   });
 
-  console.log("raw_data ==", raw_data)
-  console.log("columns ===", columns)
   // ag-grid-react bindings
   const gridRef = useRef<any | undefined>();
   const gridRefFullScreen = useRef<any | undefined>();

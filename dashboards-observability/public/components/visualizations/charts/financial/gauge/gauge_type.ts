@@ -14,7 +14,8 @@ import {
   ConfigGaugeValueOptions,
   InputFieldItem,
   SwitchButton,
-  ConfigChartOptions
+  ConfigChartOptions,
+  ButtonGroupItem
 } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls';
 
 const sharedConfigs = getPlotlySharedConfigs();
@@ -70,6 +71,20 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
             mapTo: 'chartStyles',
             schemas: [
               {
+                name: 'Orientation',
+                component: ButtonGroupItem,
+                mapTo: 'orientation',
+                eleType: 'buttons',
+                props: {
+                  options: [
+                    { name: 'Auto', id: 'auto' },
+                    { name: 'Vertical', id: 'v' },
+                    { name: 'Horizontal', id: 'h' },
+                  ],
+                  defaultSelections: [{ name: 'Auto', id: 'auto' }],
+                },
+              },
+              {
                 title: 'Title Size',
                 name: 'Title Size',
                 component: InputFieldItem,
@@ -83,20 +98,6 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
                 mapTo: 'valueSize',
                 eleType: 'input',
               },
-              // {
-              //   title: 'Legend placement',
-              //   name: 'Legend placement',
-              //   component: ButtonGroupItem,
-              //   mapTo: 'legendPlacement',
-              //   eleType: 'filterButtons',
-              //   props: {
-              //     groupOptions: [
-              //       { label: 'Top', id: 'top' },
-              //       { label: 'Bottom', id: 'bottom' },
-              //     ],
-              //     defaultSelections: [{ name: 'Left', id: "left" }],
-              //   }
-              // },
               {
                 title: 'Show threshold labels',
                 name: 'Show threshold labels',

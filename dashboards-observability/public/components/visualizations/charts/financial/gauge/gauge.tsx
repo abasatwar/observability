@@ -12,43 +12,31 @@ import { PLOTLY_GAUGE_COLUMN_NUMBER } from '../../../../../../common/constants/e
 import { DefaultGaugeChartParameters } from '../../../../../../common/constants/shared';
 import { ThresholdUnitType } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_thresholds';
 
-const { GaugeTitleSize, DisplayDefaultGauges } = DefaultGaugeChartParameters;
+const { GaugeTitleSize, DisplayDefaultGauges, OrientationDefault } = DefaultGaugeChartParameters;
 export const Gauge = ({ visualizations, layout, config }: any) => {
   const {
     data,
     metadata: { fields },
-    dataConfig: dataConfigTab,
   } = visualizations.data.rawVizData;
-  console.log('visualizations ====', visualizations);
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
-  console.log("data ====", data)
-  console.log("fields ====", fields)
-  console.log('dataConfigTab ===', dataConfigTab);
-  const series = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
-  console.log('series ===', series);
-  // const series =
-  //   dataConfig?.valueOptions && dataConfig?.valueOptions?.series
-  //     ? dataConfig.valueOptions.series
-  //     : [];
+  const dataConfigTab = visualizations?.data?.rawVizData?.Gauge?.dataConfig;
 
-  const value =
-    dataConfig?.valueOptions && dataConfig?.valueOptions?.value
-      ? dataConfig.valueOptions.value
-      : [];
+  const series = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
+  const value = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
 
   const thresholds = dataConfig?.thresholds || [];
+
   const titleSize = dataConfig?.chartStyles?.titleSize || GaugeTitleSize;
   const valueSize = dataConfig?.chartStyles?.valueSize;
   const showThresholdMarkers = dataConfig?.chartStyles?.showThresholdMarkers || false;
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
+  const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
 
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (series && series[0]) {
       if (indexOf(NUMERICAL_FIELDS, series[0].type) > 0) {
-        console.log("NUMERIC VALUE =======")
         if (value && value[0]) {
-          console.log('value is selected ====', value);
           calculatedGaugeData = [
             ...data[value[0].name].map((dimesionSlice, index) => ({
               field_name: dimesionSlice,
@@ -56,7 +44,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             })),
           ];
         } else {
-          console.log('no value seleceted =====');
           calculatedGaugeData = [
             ...data[series[0].name].slice(0, DisplayDefaultGauges).map((dimesionSlice, index) => ({
               field_name: dimesionSlice,
@@ -65,15 +52,10 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
           ];
         }
       } else {
-        console.log("NON--NUMERIC VALUE =======")
         if (value && value[0]) {
-          console.log('value selected ====');
           value.map((val) => {
-            console.log('val map ===', val);
             const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
-            console.log('selectedSeriesIndex===', selectedSeriesIndex);
             fields.map((field) => {
-              console.log('in fields map ====field', field);
               if (field.name !== series[0].name) {
                 calculatedGaugeData.push({
                   field_name: field.name,
@@ -83,22 +65,17 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             });
           });
         } else {
-          console.log('no value slected =====');
           const values = data[series[0].name].slice(0, DisplayDefaultGauges).map((i) => {
             return {
               name: i,
-              custom_label: series[0].custom_label !== "" ? series[0].custom_label : i,
+              custom_label: series[0].custom_label !== '' ? series[0].custom_label : i,
               type: series[0].type,
               label: i,
             };
           });
-          console.log('filters values from fields', values);
           values.map((val) => {
-            console.log('val map ===', val);
             const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
-            console.log('selectedSeriesIndex===', selectedSeriesIndex);
             fields.map((field) => {
-              console.log('in fields map ====field', field);
               if (field.name !== series[0].name) {
                 calculatedGaugeData.push({
                   field_name: val.custom_label ? val.custom_label : val.name,
@@ -128,8 +105,15 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             },
           }),
           domain: {
-            row: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
-            column: index % PLOTLY_GAUGE_COLUMN_NUMBER,
+            ...(orientation === 'auto' || orientation === 'h'
+              ? {
+                  row: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
+                  column: index % PLOTLY_GAUGE_COLUMN_NUMBER,
+                }
+              : {
+                  column: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
+                  row: index % PLOTLY_GAUGE_COLUMN_NUMBER,
+                }),
           },
           gauge: {
             ...(showThresholdMarkers &&
@@ -159,7 +143,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
                 steps: thresholds.map((threshold: ThresholdUnitType) => {
                   const value = Number(threshold.value);
                   return {
-                    range: [value, value + 0.25], /*width needs improvement*/
+                    range: [value, value + 0.25] /*width needs improvement*/,
                     color: threshold.color || 'red',
                     name: threshold.name || '',
                     visible: true,
@@ -177,8 +161,15 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     const isAtleastOneFullRow = Math.floor(gaugeData.length / PLOTLY_GAUGE_COLUMN_NUMBER) > 0;
     return {
       grid: {
-        rows: Math.floor(gaugeData.length / PLOTLY_GAUGE_COLUMN_NUMBER) + 1,
-        columns: isAtleastOneFullRow ? PLOTLY_GAUGE_COLUMN_NUMBER : gaugeData.length,
+        ...(orientation === 'auto' || orientation === 'h'
+          ? {
+              rows: Math.floor(gaugeData.length / PLOTLY_GAUGE_COLUMN_NUMBER) + 1,
+              columns: isAtleastOneFullRow ? PLOTLY_GAUGE_COLUMN_NUMBER : gaugeData.length,
+            }
+          : {
+              columns: Math.floor(gaugeData.length / PLOTLY_GAUGE_COLUMN_NUMBER) + 1,
+              rows: isAtleastOneFullRow ? PLOTLY_GAUGE_COLUMN_NUMBER : gaugeData.length,
+            }),
         pattern: 'independent',
       },
       ...layout,

@@ -172,10 +172,12 @@ export const DefaultChartStyles: DefaultChartStylesProps = {
 export const FILLOPACITY_DIV_FACTOR = 200; 
 export interface DefaultGaugeChartParametersProps {
   GaugeTitleSize: number,
-  DisplayDefaultGauges: number
+  DisplayDefaultGauges: number,
+  OrientationDefault: string
 };
 
 export const DefaultGaugeChartParameters: DefaultGaugeChartParametersProps = {
   GaugeTitleSize: 14,
-  DisplayDefaultGauges: 10
+  DisplayDefaultGauges: 10,
+  OrientationDefault: 'h'
 }

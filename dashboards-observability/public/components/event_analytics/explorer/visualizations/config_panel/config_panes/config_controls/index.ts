@@ -19,3 +19,4 @@ export { PanelItem } from './config_panel_item';
 export { ConfigTreemapParentFields } from './config_treemap_parents';
 export { InputFieldItem } from './config_number_input';
 export { SwitchButton } from "./config_switch_button"
+export { ButtonGroupItem } from './config_button_group';

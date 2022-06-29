@@ -15,7 +15,7 @@ import {
   InputFieldItem,
   SwitchButton,
   ConfigChartOptions,
-  ButtonGroupItem
+  ButtonGroupItem,
 } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls';
 
 const sharedConfigs = getPlotlySharedConfigs();
@@ -104,7 +104,7 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
                 component: SwitchButton,
                 mapTo: 'showThresholdLabels',
                 eleType: 'switchButton',
-                currentValue: false
+                currentValue: false,
               },
               {
                 title: 'Show threshold markers',
@@ -112,8 +112,8 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
                 component: SwitchButton,
                 mapTo: 'showThresholdMarkers',
                 eleType: 'switchButton',
-                currentValue: true
-              }
+                currentValue: true,
+              },
             ],
           },
           {

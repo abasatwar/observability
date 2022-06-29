@@ -18,25 +18,40 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     data,
     metadata: { fields },
   } = visualizations.data.rawVizData;
+  console.log('visualizations ====', visualizations);
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
+  console.log('data ====', data);
+  console.log('fields ====', fields);
   const dataConfigTab = visualizations?.data?.rawVizData?.Gauge?.dataConfig;
-
+  console.log('dataConfigTab ===', dataConfigTab);
   const series = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
-  const value = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
+  console.log('series ===', series);
+  console.log('dataConfig ===', dataConfig);
+  // const series =
+  //   dataConfig?.valueOptions && dataConfig?.valueOptions?.series
+  //     ? dataConfig.valueOptions.series
+  //     : [];
+
+  const value =
+    dataConfig?.valueOptions && dataConfig?.valueOptions?.value
+      ? dataConfig.valueOptions.value
+      : [];
+  // const value = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
 
   const thresholds = dataConfig?.thresholds || [];
-
   const titleSize = dataConfig?.chartStyles?.titleSize || GaugeTitleSize;
   const valueSize = dataConfig?.chartStyles?.valueSize;
   const showThresholdMarkers = dataConfig?.chartStyles?.showThresholdMarkers || false;
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
   const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
-
+  console.log('orientation ===', orientation);
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (series && series[0]) {
       if (indexOf(NUMERICAL_FIELDS, series[0].type) > 0) {
+        console.log('NUMERIC VALUE =======');
         if (value && value[0]) {
+          console.log('value is selected ====', value);
           calculatedGaugeData = [
             ...data[value[0].name].map((dimesionSlice, index) => ({
               field_name: dimesionSlice,
@@ -44,6 +59,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             })),
           ];
         } else {
+          console.log('no value seleceted =====');
           calculatedGaugeData = [
             ...data[series[0].name].slice(0, DisplayDefaultGauges).map((dimesionSlice, index) => ({
               field_name: dimesionSlice,
@@ -52,10 +68,15 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
           ];
         }
       } else {
+        console.log('NON--NUMERIC VALUE =======');
         if (value && value[0]) {
+          console.log('value selected ====');
           value.map((val) => {
+            console.log('val map ===', val);
             const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
+            console.log('selectedSeriesIndex===', selectedSeriesIndex);
             fields.map((field) => {
+              console.log('in fields map ====field', field);
               if (field.name !== series[0].name) {
                 calculatedGaugeData.push({
                   field_name: field.name,
@@ -65,6 +86,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             });
           });
         } else {
+          console.log('no value slected =====');
           const values = data[series[0].name].slice(0, DisplayDefaultGauges).map((i) => {
             return {
               name: i,
@@ -73,9 +95,13 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
               label: i,
             };
           });
+          console.log('filters values from fields', values);
           values.map((val) => {
+            console.log('val map ===', val);
             const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
+            console.log('selectedSeriesIndex===', selectedSeriesIndex);
             fields.map((field) => {
+              console.log('in fields map ====field', field);
               if (field.name !== series[0].name) {
                 calculatedGaugeData.push({
                   field_name: val.custom_label ? val.custom_label : val.name,

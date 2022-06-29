@@ -21,7 +21,8 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
   } = visualizations.data.rawVizData;
   console.log('visualizations ====', visualizations);
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
-
+  console.log("data ====", data)
+  console.log("fields ====", fields)
   console.log('dataConfigTab ===', dataConfigTab);
   const series = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
   console.log('series ===', series);
@@ -45,6 +46,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (series && series[0]) {
       if (indexOf(NUMERICAL_FIELDS, series[0].type) > 0) {
+        console.log("NUMERIC VALUE =======")
         if (value && value[0]) {
           console.log('value is selected ====', value);
           calculatedGaugeData = [
@@ -63,6 +65,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
           ];
         }
       } else {
+        console.log("NON--NUMERIC VALUE =======")
         if (value && value[0]) {
           console.log('value selected ====');
           value.map((val) => {
@@ -84,6 +87,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
           const values = data[series[0].name].slice(0, DisplayDefaultGauges).map((i) => {
             return {
               name: i,
+              custom_label: series[0].custom_label !== "" ? series[0].custom_label : i,
               type: series[0].type,
               label: i,
             };
@@ -97,7 +101,8 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
               console.log('in fields map ====field', field);
               if (field.name !== series[0].name) {
                 calculatedGaugeData.push({
-                  field_name: field.name,
+                  field_name: val.custom_label ? val.custom_label : val.name,
+                  // field_name: val.name,
                   value: data[field.name][selectedSeriesIndex],
                 });
               }

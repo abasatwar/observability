@@ -16,7 +16,7 @@ export const getPlotlySharedConfigs = () => {
         t: 50,
         pad: 0,
       },
-      height: 500,
+      height: 720,
       legend: {
         orientation: 'v',
         traceorder: 'normal',

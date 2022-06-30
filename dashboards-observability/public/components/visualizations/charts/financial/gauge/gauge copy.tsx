@@ -19,66 +19,114 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     metadata: { fields },
   } = visualizations.data.rawVizData;
   console.log('visualizations ====', visualizations);
-  console.log('data at gauge chart==', data);
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
+  console.log('data ====', data);
   console.log('fields ====', fields);
   const dataConfigTab = visualizations?.data?.rawVizData?.Gauge?.dataConfig;
   console.log('dataConfigTab ===', dataConfigTab);
   const dimensions = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
   const metrics = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
-  const dimensionsLength = dimensions.length && dimensions[0]?.name != '' ? dimensions.length : 0;
-  const metricsLength = metrics.length && metrics[0]?.name != '' ? metrics.length : 0;
+  const dimensionsLength = dimensions.length && dimensions[0]?.name != "" ? dimensions.length : 0
+  const metricsLength = metrics.length && metrics[0]?.name != "" ? metrics.length : 0
   console.log('dimensions ===', dimensions);
-  console.log('metrics ====', metrics);
+  console.log("metrics ====", metrics)
   console.log('dataConfig ===', dataConfig);
- 
+  console.log("dimensionsLength", dimensionsLength, "metricsLength", metricsLength)
+  // const series =
+  //   dataConfig?.valueOptions && dataConfig?.valueOptions?.series
+  //     ? dataConfig.valueOptions.series
+  //     : [];
+
+  // const value =
+  //   dataConfig?.valueOptions && dataConfig?.valueOptions?.value
+  //     ? dataConfig.valueOptions.value
+  //     : [];
+
   const thresholds = dataConfig?.thresholds || [];
   const titleSize = dataConfig?.chartStyles?.titleSize || GaugeTitleSize;
   const valueSize = dataConfig?.chartStyles?.valueSize;
   const showThresholdMarkers = dataConfig?.chartStyles?.showThresholdMarkers || false;
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
   const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
-  console.log(
-    'showThresholdMarkers===',
-    showThresholdMarkers,
-    'showThresholdLabels',
-    showThresholdLabels
-  );
-
+  console.log('orientation ===', orientation);
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (dimensionsLength || metricsLength) {
-      // case 1,2: no dimension, single/multiple metrics
-      if (!dimensionsLength && metricsLength >= 1) {
-        console.log('case 11111');
-        console.log('QUERY DATA@@@ ====', data);
-        calculatedGaugeData = metrics.map((metric: any) => {
-          return {
-            field_name: metric.name,
-            value: data[metric.name][0],
-          };
-        });
+
+      // case 1: no dimension, single metric
+      if(!dimensionsLength && metricsLength === 1){
+        console.log("case 11111")
+
+
+
       }
 
-      if (dimensionsLength && metricsLength) {
-        console.log('case 22222');
-        console.log('QUERY DATA@@@ ====', data);
-        metrics.map((metric: any) => {
-          console.log('metrics map ==== metric', metric);
-          console.log('data#####', data[metric.name].slice(0, DisplayDefaultGauges));
-          calculatedGaugeData = [
-            ...calculatedGaugeData,
-            ...data[metric.name].slice(0, DisplayDefaultGauges).map((i: any, index: number) => {
-              return {
-                field_name: `${metric.name},${data[dimensions[0].name][index]}`,
-                value: data[metric.name][index],
-              };
-            }),
-          ];
-        });
-      }
+      // if (indexOf(NUMERICAL_FIELDS, series[0].type) > 0) {
+      //   console.log('NUMERIC VALUE =======');
+      //   if (value && value[0]) {
+      //     console.log('value is selected ====', value);
+      //     calculatedGaugeData = [
+      //       ...data[value[0].name].map((dimesionSlice, index) => ({
+      //         field_name: dimesionSlice,
+      //         value: data[series[0].name][index],
+      //       })),
+      //     ];
+      //   } else {
+      //     console.log('no value seleceted =====');
+      //     calculatedGaugeData = [
+      //       ...data[series[0].name].slice(0, DisplayDefaultGauges).map((dimesionSlice, index) => ({
+      //         field_name: dimesionSlice,
+      //         value: data[series[0].name][index],
+      //       })),
+      //     ];
+      //   }
+      // } else {
+      //   console.log('NON--NUMERIC VALUE =======');
+      //   if (value && value[0]) {
+      //     console.log('value selected ====');
+      //     value.map((val) => {
+      //       console.log('val map ===', val);
+      //       const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
+      //       console.log('selectedSeriesIndex===', selectedSeriesIndex);
+      //       fields.map((field) => {
+      //         console.log('in fields map ====field', field);
+      //         if (field.name !== series[0].name) {
+      //           calculatedGaugeData.push({
+      //             field_name: field.name,
+      //             value: data[field.name][selectedSeriesIndex],
+      //           });
+      //         }
+      //       });
+      //     });
+      //   } else {
+      //     console.log('no value slected =====');
+      //     const values = data[series[0].name].slice(0, DisplayDefaultGauges).map((i) => {
+      //       return {
+      //         name: i,
+      //         custom_label: series[0].custom_label !== '' ? series[0].custom_label : i,
+      //         type: series[0].type,
+      //         label: i,
+      //       };
+      //     });
+      //     console.log('filters values from fields', values);
+      //     values.map((val) => {
+      //       console.log('val map ===', val);
+      //       const selectedSeriesIndex = indexOf(data[series[0].name], val.name);
+      //       console.log('selectedSeriesIndex===', selectedSeriesIndex);
+      //       fields.map((field) => {
+      //         console.log('in fields map ====field', field);
+      //         if (field.name !== series[0].name) {
+      //           calculatedGaugeData.push({
+      //             field_name: val.custom_label ? val.custom_label : val.name,
+      //             // field_name: val.name,
+      //             value: data[field.name][selectedSeriesIndex],
+      //           });
+      //         }
+      //       });
+      //     });
+      //   }
+      // }
 
-      console.log('calculatedGaugeData ===', calculatedGaugeData);
       return calculatedGaugeData.map((gauge, index) => {
         return {
           type: 'indicator',
@@ -146,18 +194,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
       });
     }
     return calculatedGaugeData;
-  }, [
-    dimensions,
-    metrics,
-    data,
-    fields,
-    thresholds,
-    showThresholdMarkers,
-    orientation,
-    showThresholdLabels,
-    titleSize,
-    valueSize
-  ]);
+  }, [dimensions, metrics, data, fields, thresholds]);
 
   const mergedLayout = useMemo(() => {
     const isAtleastOneFullRow = Math.floor(gaugeData.length / PLOTLY_GAUGE_COLUMN_NUMBER) > 0;
@@ -178,19 +215,13 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
       ...(layoutConfig.layout && layoutConfig.layout),
       title: dataConfig?.panelOptions?.title || layoutConfig.layout?.title || '',
     };
-  }, [
-    data,
-    layout,
-    gaugeData.length,
-    layoutConfig.layout,
-    dataConfig?.panelOptions?.title,
-    orientation,
-  ]);
+  }, [data, layout, gaugeData.length, layoutConfig.layout, dataConfig?.panelOptions?.title]);
 
   const mergedConfigs = {
     ...config,
     ...(layoutConfig.config && layoutConfig.config),
   };
-  console.log('gauge data----', gaugeData);
+
+  console.log("gaugeData=====", gaugeData)
   return <Plt data={gaugeData} layout={mergedLayout} config={mergedConfigs} />;
 };

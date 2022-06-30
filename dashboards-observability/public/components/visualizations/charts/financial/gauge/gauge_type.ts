@@ -9,9 +9,7 @@ import { LensIconChartLine } from '../../../assets/chart_line';
 import { VizDataPanel } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/default_vis_editor';
 import { ConfigEditor } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/json_editor';
 import {
-  ConfigValueOptions,
   ConfigThresholds,
-  ConfigGaugeValueOptions,
   InputFieldItem,
   SwitchButton,
   ConfigChartOptions,
@@ -42,28 +40,6 @@ export const createGaugeTypeDefinition = (params: any = {}) => ({
         mapTo: 'dataConfig',
         editor: VizDataPanel,
         sections: [
-          // {
-          //   id: 'value_options',
-          //   name: 'Value options',
-          //   editor: ConfigGaugeValueOptions,
-          //   mapTo: 'valueOptions',
-          //   schemas: [
-          //     {
-          //       name: 'Series',
-          //       isSingleSelection: true,
-          //       onChangeHandler: 'setXaxisSelections',
-          //       component: null,
-          //       mapTo: 'series',
-          //     },
-          //     {
-          //       name: 'Value',
-          //       isSingleSelection: false,
-          //       onChangeHandler: 'setYaxisSelections',
-          //       component: null,
-          //       mapTo: 'value',
-          //     },
-          //   ],
-          // },
           {
             id: 'chart-styles',
             name: 'Chart styles',

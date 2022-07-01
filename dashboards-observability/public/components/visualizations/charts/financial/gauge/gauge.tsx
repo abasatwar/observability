@@ -4,10 +4,8 @@
  */
 
 import React, { useMemo } from 'react';
-import { indexOf } from 'lodash';
 import Plotly from 'plotly.js-dist';
 import { Plt } from '../../../plotly/plot';
-import { NUMERICAL_FIELDS } from '../../../../../../common/constants/shared';
 import { PLOTLY_GAUGE_COLUMN_NUMBER } from '../../../../../../common/constants/explorer';
 import { DefaultGaugeChartParameters } from '../../../../../../common/constants/shared';
 import { ThresholdUnitType } from '../../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_thresholds';
@@ -18,40 +16,28 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     data,
     metadata: { fields },
   } = visualizations.data.rawVizData;
-  console.log('visualizations ====', visualizations);
-  console.log('data at gauge chart==', data);
+ 
+  // data config parametrs
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
-  console.log('fields ====', fields);
   const dataConfigTab = visualizations?.data?.rawVizData?.Gauge?.dataConfig;
-  console.log('dataConfigTab ===', dataConfigTab);
   const dimensions = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
   const metrics = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
   const dimensionsLength = dimensions.length && dimensions[0]?.name != '' ? dimensions.length : 0;
   const metricsLength = metrics.length && metrics[0]?.name != '' ? metrics.length : 0;
-  console.log('dimensions ===', dimensions);
-  console.log('metrics ====', metrics);
-  console.log('dataConfig ===', dataConfig);
- 
+  
+  // data panel parameters
   const thresholds = dataConfig?.thresholds || [];
   const titleSize = dataConfig?.chartStyles?.titleSize || GaugeTitleSize;
   const valueSize = dataConfig?.chartStyles?.valueSize;
   const showThresholdMarkers = dataConfig?.chartStyles?.showThresholdMarkers || false;
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
   const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
-  console.log(
-    'showThresholdMarkers===',
-    showThresholdMarkers,
-    'showThresholdLabels',
-    showThresholdLabels
-  );
 
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (dimensionsLength || metricsLength) {
       // case 1,2: no dimension, single/multiple metrics
       if (!dimensionsLength && metricsLength >= 1) {
-        console.log('case 11111');
-        console.log('QUERY DATA@@@ ====', data);
         calculatedGaugeData = metrics.map((metric: any) => {
           return {
             field_name: metric.name,
@@ -60,12 +46,9 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
         });
       }
 
+      // case 3: multiple dimensions/metrics
       if (dimensionsLength && metricsLength) {
-        console.log('case 22222');
-        console.log('QUERY DATA@@@ ====', data);
         metrics.map((metric: any) => {
-          console.log('metrics map ==== metric', metric);
-          console.log('data#####', data[metric.name].slice(0, DisplayDefaultGauges));
           calculatedGaugeData = [
             ...calculatedGaugeData,
             ...data[metric.name].slice(0, DisplayDefaultGauges).map((i: any, index: number) => {
@@ -78,7 +61,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
         });
       }
 
-      console.log('calculatedGaugeData ===', calculatedGaugeData);
       return calculatedGaugeData.map((gauge, index) => {
         return {
           type: 'indicator',
@@ -191,6 +173,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     ...config,
     ...(layoutConfig.config && layoutConfig.config),
   };
-  console.log('gauge data----', gaugeData);
+
   return <Plt data={gaugeData} layout={mergedLayout} config={mergedConfigs} />;
 };

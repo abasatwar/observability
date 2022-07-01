@@ -22,7 +22,8 @@ import {
   renderPieChart,
   renderLineChartForDataConfig,
   DataConfigLineChart,
-  renderGaugeChart
+  renderGaugeChart,
+  DataConfigLineChart
 } from '../utils/event_constants';
 import { supressResizeObserverIssue } from '../utils/constants';
 

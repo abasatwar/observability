@@ -16,7 +16,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     data,
     metadata: { fields },
   } = visualizations.data.rawVizData;
- 
+
   // data config parametrs
   const { dataConfig = {}, layoutConfig = {} } = visualizations.data.userConfigs;
   const dataConfigTab = visualizations?.data?.rawVizData?.Gauge?.dataConfig;
@@ -24,7 +24,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
   const metrics = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
   const dimensionsLength = dimensions.length && dimensions[0]?.name != '' ? dimensions.length : 0;
   const metricsLength = metrics.length && metrics[0]?.name != '' ? metrics.length : 0;
-  
+
   // data panel parameters
   const thresholds = dataConfig?.thresholds || [];
   const titleSize = dataConfig?.chartStyles?.titleSize || GaugeTitleSize;
@@ -33,6 +33,9 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
   const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
 
+  console.log('data @ gaugechart ===', data);
+  console.log('dimensions---', dimensions);
+  console.log('metrics===', metrics);
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (dimensionsLength || metricsLength) {
@@ -48,17 +51,47 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
 
       // case 3: multiple dimensions/metrics
       if (dimensionsLength && metricsLength) {
-        metrics.map((metric: any) => {
+        const selectedDimensionsData = [
+          ...dimensions.map((dimension: any) =>
+            data[dimension.name].slice(0, DisplayDefaultGauges)
+          ),
+        ].reduce(function (prev, cur) {
+          return prev.map(function (i, j) {
+            return `${i}, ${cur[j]}`;
+          });
+        });
+
+        const selectedMetricsData = [
+          ...metrics.map((metric: any) => data[metric.name].slice(0, DisplayDefaultGauges)),
+        ];
+
+        console.log('selectedDimensionsData =====', selectedDimensionsData);
+        console.log('selectedMetricsData ===', selectedMetricsData);
+        selectedMetricsData.map((metricSlice: any, metricSliceIndex) => {
           calculatedGaugeData = [
             ...calculatedGaugeData,
-            ...data[metric.name].slice(0, DisplayDefaultGauges).map((i: any, index: number) => {
+            ...metricSlice.map((metricSliceData: any, metricSliceDataIndex: number) => {
               return {
-                field_name: `${metric.name},${data[dimensions[0].name][index]}`,
-                value: data[metric.name][index],
+                field_name: `${selectedDimensionsData[metricSliceDataIndex]}, ${metrics[metricSliceIndex].name}`,
+                value: metricSliceData,
               };
             }),
           ];
         });
+
+        console.log('calculatedGaugeData===', calculatedGaugeData);
+
+        // metrics.map((metric: any) => {
+        //   calculatedGaugeData = [
+        //     ...calculatedGaugeData,
+        //     ...data[metric.name].slice(0, DisplayDefaultGauges).map((i: any, index: number) => {
+        //       return {
+        //         field_name: `${metric.name},${data[dimensions[0].name][index]}`,
+        //         value: data[metric.name][index],
+        //       };
+        //     }),
+        //   ];
+        // });
       }
 
       return calculatedGaugeData.map((gauge, index) => {
@@ -138,7 +171,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
     orientation,
     showThresholdLabels,
     titleSize,
-    valueSize
+    valueSize,
   ]);
 
   const mergedLayout = useMemo(() => {

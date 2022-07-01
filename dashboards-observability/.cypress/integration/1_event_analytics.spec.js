@@ -21,7 +21,6 @@ import {
   renderTreeMapchart,
   renderPieChart,
   renderLineChartForDataConfig,
-  DataConfigLineChart,
   renderGaugeChart,
   DataConfigLineChart
 } from '../utils/event_constants';

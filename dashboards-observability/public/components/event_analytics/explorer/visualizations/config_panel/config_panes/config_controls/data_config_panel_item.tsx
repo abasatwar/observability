@@ -229,7 +229,7 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
     ));
 
   return (
-    <>
+    <div style={{ height: 'auto' }}>
       <EuiTitle size="xxs">
         <h3>Data Configurations</h3>
       </EuiTitle>
@@ -255,6 +255,6 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
           Update chart
         </EuiButton>
       </EuiFlexItem>
-    </>
+    </div>
   );
 };

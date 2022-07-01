@@ -33,9 +33,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
   const showThresholdLabels = dataConfig?.chartStyles?.showThresholdLabels || false;
   const orientation = dataConfig?.chartStyles?.orientation || OrientationDefault;
 
-  console.log('data @ gaugechart ===', data);
-  console.log('dimensions---', dimensions);
-  console.log('metrics===', metrics);
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
     if (dimensionsLength || metricsLength) {
@@ -49,7 +46,7 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
         });
       }
 
-      // case 3: multiple dimensions/metrics
+      // case 3: multiple dimensions and multiple metrics
       if (dimensionsLength && metricsLength) {
         const selectedDimensionsData = [
           ...dimensions.map((dimension: any) =>
@@ -65,8 +62,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
           ...metrics.map((metric: any) => data[metric.name].slice(0, DisplayDefaultGauges)),
         ];
 
-        console.log('selectedDimensionsData =====', selectedDimensionsData);
-        console.log('selectedMetricsData ===', selectedMetricsData);
         selectedMetricsData.map((metricSlice: any, metricSliceIndex) => {
           calculatedGaugeData = [
             ...calculatedGaugeData,
@@ -78,20 +73,6 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
             }),
           ];
         });
-
-        console.log('calculatedGaugeData===', calculatedGaugeData);
-
-        // metrics.map((metric: any) => {
-        //   calculatedGaugeData = [
-        //     ...calculatedGaugeData,
-        //     ...data[metric.name].slice(0, DisplayDefaultGauges).map((i: any, index: number) => {
-        //       return {
-        //         field_name: `${metric.name},${data[dimensions[0].name][index]}`,
-        //         value: data[metric.name][index],
-        //       };
-        //     }),
-        //   ];
-        // });
       }
 
       return calculatedGaugeData.map((gauge, index) => {

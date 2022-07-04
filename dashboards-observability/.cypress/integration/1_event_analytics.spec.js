@@ -877,8 +877,8 @@ describe('Render heatmap chart and verify "no results found" message should be s
     cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
     cy.get('.euiComboBoxOption__content').contains('DestCityName').click();
     cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
-    .contains('Update chart')
-    .click();
+      .contains('Update chart')
+      .click();
     cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
   });
 
@@ -888,8 +888,8 @@ describe('Render heatmap chart and verify "no results found" message should be s
     cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
     cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
     cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
-    .contains('Update chart')
-    .click();
+      .contains('Update chart')
+      .click();
     cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
   });
 
@@ -899,8 +899,8 @@ describe('Render heatmap chart and verify "no results found" message should be s
     cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
     cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
     cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
-    .contains('Update chart')
-    .click();
+      .contains('Update chart')
+      .click();
     cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
   });
 
@@ -912,18 +912,15 @@ describe('Render heatmap chart and verify "no results found" message should be s
     cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
     cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
     cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
-    .contains('Update chart')
-    .click();
+      .contains('Update chart')
+      .click();
     cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
   });
 });
 
 describe('Render heatmap chart and verify chart is seen if all the feilds selected properly ', () => {
-  beforeEach(() => {
+  it('Render heatmap chart and verify "no results found" message should be seen if metrics feild not selected ', () => {
     renderHeatmapChart();
-  });
-
-  it.only('Render heatmap chart and verify "no results found" message should be seen if metrics feild not selected ', () => {
     cy.get('[data-test-subj="comboBoxInput"]').eq(1).click();
     cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
     cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
@@ -931,8 +928,8 @@ describe('Render heatmap chart and verify chart is seen if all the feilds select
     cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
     cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
     cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
-    .contains('Update chart')
-    .click();
+      .contains('Update chart')
+      .click();
     cy.get('.xy').should('exist');
   });
 });

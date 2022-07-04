@@ -21,7 +21,8 @@ import {
   renderTreeMapchart,
   renderPieChart,
   renderLineChartForDataConfig,
-  DataConfigLineChart
+  DataConfigLineChart,
+  renderHeatmapChart
 } from '../utils/event_constants';
 import { supressResizeObserverIssue } from '../utils/constants';
 
@@ -855,5 +856,83 @@ describe('Render Time series chart/Line chart and verify Data configurations UI 
   it('Render line chart and verify Data Configuration Panel', () => {
     renderLineChartForDataConfig();
     DataConfigLineChart();
+  });
+});
+
+describe('Render heatmap chart and verify by default "no results found" message should be seen', () => {
+  it('Render heatmap chart and verify by default "no results found" message should be seen ', () => {
+    renderHeatmapChart();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+});
+
+describe('Render heatmap chart and verify "no results found" message should be seen if feilds are not selected properly ', () => {
+  beforeEach(() => {
+    renderHeatmapChart();
+  });
+
+  it('Render heatmap chart and verify "no results found" message should be seen if metrics feild not selected ', () => {
+    cy.get('[data-test-subj="comboBoxInput"]').eq(1).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCityName').click();
+    cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+    .contains('Update chart')
+    .click();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+
+  it('Render heatmap chart and verify "no results found" message should be seen if y-axis feild not selected ', () => {
+    cy.get('[data-test-subj="comboBoxInput"]').eq(1).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
+    cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
+    cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+    .contains('Update chart')
+    .click();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+
+  it('Render heatmap chart and verify "no results found" message should be seen if x-axis feild not selected ', () => {
+    cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCityName').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
+    cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
+    cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+    .contains('Update chart')
+    .click();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+
+  it('Render heatmap chart and verify "no results found" message should be seen if valid feild not selected ', () => {
+    cy.get('[data-test-subj="comboBoxInput"]').eq(1).click();
+    cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCityName').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
+    cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+    .contains('Update chart')
+    .click();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+});
+
+describe('Render heatmap chart and verify chart is seen if all the feilds selected properly ', () => {
+  beforeEach(() => {
+    renderHeatmapChart();
+  });
+
+  it.only('Render heatmap chart and verify "no results found" message should be seen if metrics feild not selected ', () => {
+    cy.get('[data-test-subj="comboBoxInput"]').eq(1).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCountry').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(3).click();
+    cy.get('.euiComboBoxOption__content').contains('DestCityName').click();
+    cy.get('[data-test-subj="comboBoxInput"]').eq(5).click();
+    cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
+    cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+    .contains('Update chart')
+    .click();
+    cy.get('.xy').should('exist');
   });
 });

@@ -111,6 +111,13 @@ export const renderPieChart = () => {
     cy.get('[data-test-subj="comboBoxInput"]').eq(2).click();
 };
 
+export const renderHeatmapChart = () => {
+  landOnEventVisualizations();
+  querySearch(TEST_QUERIES[5].query, TEST_QUERIES[5].dateRangeDOM);
+  cy.get('[data-test-subj="configPane__vizTypeSelector"] [data-test-subj="comboBoxInput"]').type('Heatmap').type('{enter}');
+};
+
+
 export const renderDataConfig = () => {
   cy.get('.euiResizablePanel.euiResizablePanel--middle').contains('Data Cofigurations');
   cy.get('.euiTitle.euiTitle--xxsmall').eq(1).contains('Dimensions').should('exist');

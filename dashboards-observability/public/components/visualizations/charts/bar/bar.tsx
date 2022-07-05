@@ -10,7 +10,7 @@ import { LONG_CHART_COLOR, PLOTLY_COLOR } from '../../../../../common/constants/
 import { AvailabilityUnitType } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_availability';
 import { ThresholdUnitType } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_thresholds';
 import { hexToRgb } from '../../../event_analytics/utils/utils';
-import {  FILLOPACITY_DIV_FACTOR } from '../../../../../common/constants/shared';
+import { FILLOPACITY_DIV_FACTOR } from '../../../../../common/constants/shared';
 
 export const Bar = ({ visualizations, layout, config }: any) => {
   const { vis } = visualizations;
@@ -26,10 +26,11 @@ export const Bar = ({ visualizations, layout, config }: any) => {
     availabilityConfig = {},
   } = visualizations?.data?.userConfigs;
   let multiMetrics = {};
-  const xaxis =
-    visualizations.data?.rawVizData?.dataConfig?.dimensions && visualizations.data?.rawVizData?.dataConfig?.dimensions ? visualizations.data?.rawVizData?.dataConfig?.dimensions : [];
-  const yaxis =
-    visualizations.data?.rawVizData?.dataConfig?.metrics ? visualizations.data?.rawVizData?.dataConfig?.metrics : [];
+  const dataConfigTab = visualizations.data?.rawVizData?.bar?.dataConfig && visualizations.data.rawVizData.bar.dataConfig;
+  const xaxis = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
+  const yaxis = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
+  console.log('data in bar--dataConfigTab--', dataConfigTab)
+
   const barOrientation = dataConfig?.chartStyles?.orientation || vis.orientation;
   const { defaultAxes } = visualizations.data;
   const tickAngle = dataConfig?.chartStyles?.rotateBarLabels || vis.labelAngle
@@ -45,73 +46,106 @@ export const Bar = ({ visualizations, layout, config }: any) => {
   const getSelectedColorTheme = (field: any, index: number) => dataConfig?.colorTheme?.length > 0 && dataConfig.colorTheme.find(
     (colorSelected) => colorSelected.name.name === field.label)?.color || PLOTLY_COLOR[index % PLOTLY_COLOR.length];
 
-    let valueSeries, valueForXSeries;
-    if (!isEmpty(xaxis) && !isEmpty(yaxis)) {
-      valueSeries = isVertical ? [...yaxis] : [...xaxis];
-      valueForXSeries = isVertical ? [...xaxis] : [...yaxis];
-    } else {
-      valueSeries = defaultAxes.yaxis || take(fields, lastIndex > 0 ? lastIndex : 1);
-      valueForXSeries = defaultAxes.xaxis; // TODO: add or condition
-    }
+  let valueSeries, valueForXSeries;
+  if (!isEmpty(xaxis) && !isEmpty(yaxis)) {
+    valueSeries = isVertical ? [...yaxis] : [...xaxis];
+    valueForXSeries = isVertical ? [...xaxis] : [...yaxis];
+  } else {
+    valueSeries = defaultAxes.yaxis || take(fields, lastIndex > 0 ? lastIndex : 1);
+    valueForXSeries = defaultAxes.xaxis; // TODO: add or condition
+  }
+// // for multiple dimention and metrics
+// debugger
+//   const dimensionsData = [
+//     ...valueForXSeries.map((dimension: any) =>
+//       data[dimension.label]
+//     ),
+//   ].reduce(function (prev, cur) {
+//     return prev.map(function (i, j) {
+//       return `${i}, ${cur[j]}`;
+//     });
+//   });
+//   const metricsData = [
+//     ...valueSeries.map((dimension: any) =>
+//       data[dimension.label]
+//     ),
+//   ].reduce(function (prev, cur) {
+//     return prev.map(function (i, j) {
+//       return `${i}, ${cur[j]}`;
+//     });
+//   });
 
-  // determine category axis
-  let bars = valueSeries.map((field: any, index: number) => {
-    const selectedColor = getSelectedColorTheme(field, index);
-    const multiYaxis = { yaxis: `y${index + 1}` };
-    if (index >= 1) {
-      multiMetrics = {
-        ...multiMetrics,
-        [`yaxis${index + 1}`]: {
-          title: `yaxis${index + 1} title`,
-          titlefont: { color: PLOTLY_COLOR[index] },
-          tickfont: { color: PLOTLY_COLOR[index] },
-          overlaying: 'y',
-          side: 'right',
-          anchor: 'free',
-          position: 1 - 0.1 * (index - 1),
-        }
-      }
-    }
-    return valueForXSeries.map((fieldx: any, i: number) => {
-      const multiXaxis = { xaxis: `x${i + 1}` };
-      if (i >= 1) {
-        multiMetrics = {
-          ...multiMetrics,
-          [`xaxis${i + 1}`]: {
-            title: `xaxis${i + 1} title`,
-            titlefont: { color: PLOTLY_COLOR[i] },
-            tickfont: { color: PLOTLY_COLOR[i] },
-            overlaying: 'x',
-            side: 'top',
-            anchor: 'free',
-            position: 1 - 0.1 * (i - 1),
-          }
-        }
-      }
-      return {
-        x: isVertical
-          ? data[!isEmpty(xaxis) ? [fieldx.label] : fields[lastIndex].name]
-          : data[field.label],
-        y: isVertical
-          ? data[field.label]
-          : data[!isEmpty(yaxis) ? [field.label] : fields[lastIndex].name],
-        type: vis.type,
-        marker: {
-          color: hexToRgb(selectedColor, fillOpacity),
-          line: {
-            color: selectedColor,
-            width: lineWidth
-          }
-        },
-        ...(i >= 1 && multiXaxis),
-        ...(index >= 1 && multiYaxis),
-        name: field.label,
-        orientation: barOrientation,
-      };
+//    console.log('dimensionsData =====', dimensionsData);
+  // console.log('metricsData =====', metricsData);
+
+//   let bars = valueSeries.map((field: any, index: number) => {
+//     const selectedColor = getSelectedColorTheme(field, index);
+//     return {
+//       x: isVertical
+//         ? !isEmpty(xaxis) ? dimensionsData : data[fields[lastIndex].name]
+//         : data[field.name],
+//       y: isVertical
+//         ? data[field.name]
+//         : metricsData, // TODO: add if isempty true
+//       type: vis.type,
+//       marker: {
+//         color: hexToRgb(selectedColor, fillOpacity),
+//         line: {
+//           color: selectedColor,
+//           width: lineWidth
+//         }
+//       },
+//       name: field.name,
+//       orientation: barOrientation,
+//     };
+//   });
+
+//for mulitple dimension, metrics and timestamp
+
+//const filteredValueForXSeries = valueForXSeries.filter((item) => item.type !== 'timestamp');
+  const nameData = [...(valueForXSeries
+  .filter(item=> item.type !== 'timestamp'))
+  .map(dimension => data[dimension.label])]
+  .reduce(function (prev, cur) {
+    return prev.map(function (i, j) {
+      return `${i}, ${cur[j]}`;
     });
   });
+  console.log('no timestamps dimensions after reduce', nameData)
 
-  bars = [].concat.apply([], bars);
+  let  dimensionsData = [...(valueForXSeries
+    .filter(item => item.type === 'timestamp'))
+    .map(dimension => data[dimension.label])];
+  dimensionsData = [].concat.apply([], dimensionsData);
+console.log('no timestamps dimensions', dimensionsData)
+
+// [...(valueForXSeries.filter(item=> item.type !== 'timestamp')).map(dimension => data[dimension.label])]
+
+  let bars = valueSeries.map((field: any, index: number) => {
+    const selectedColor = getSelectedColorTheme(field, index);
+    console.log('bars--name--', dimensionsData+ ',' + field.label)
+    return {
+      x: isVertical
+        ? !isEmpty(xaxis) ? dimensionsData : data[fields[lastIndex].name]
+        : data[field.label],
+      y: isVertical
+        ? data[field.label]
+        : dimensionsData, // TODO: add if isempty true
+      type: vis.type,
+      marker: {
+        color: hexToRgb(selectedColor, fillOpacity),
+        line: {
+          color: selectedColor,
+          width: lineWidth
+        }
+      },
+      name: dimensionsData[index]+ ',' + field.label,
+      orientation: barOrientation,
+    };
+  });
+
+  console.log('bars----', bars)
+
 
   // If chart has length of result buckets < 16
   // then use the LONG_CHART_COLOR for all the bars in the chart
@@ -127,9 +161,6 @@ export const Bar = ({ visualizations, layout, config }: any) => {
     xaxis: {
       tickangle: tickAngle,
       automargin: true,
-      tickfont: {
-        size: labelSize,
-      }
     },
     bargap: groupWidth,
     bargroupgap: barWidth,
@@ -138,7 +169,6 @@ export const Bar = ({ visualizations, layout, config }: any) => {
       orientation: legendPosition,
     },
     showlegend: showLegend,
-    ...multiMetrics && multiMetrics,
   };
 
   if (dataConfig.thresholds || availabilityConfig.level) {

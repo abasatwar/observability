@@ -129,11 +129,6 @@ export const DataConfigPanelItem = ({ fieldOptionList, visualizations }: any) =>
     (visualizations.vis.name === visChartTypes.Line ||
       visualizations.vis.name === visChartTypes.Bar);
 
-  const isPositionButtonVisible = (sectionName: string) =>
-    sectionName === 'metrics' &&
-    (visualizations.vis.name === visChartTypes.Line ||
-      visualizations.vis.name === visChartTypes.Bar);
-
   const getCommonUI = (lists, sectionName: string) =>
     lists &&
     lists.map((singleField, index: number) => (

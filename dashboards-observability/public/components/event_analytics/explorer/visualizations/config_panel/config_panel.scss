@@ -39,10 +39,6 @@ $vis-editor-sidebar-min-width: 350px;
   display: none;
 }
 
-.configPane_options {
-  min-height: 1198px;
-}
-
 //
 // NAVIGATION
 //
@@ -126,4 +122,7 @@ $vis-editor-sidebar-min-width: 350px;
   .visEditorSidebar__autoApplyButton {
     margin-left: $euiSizeM;
   }
+}
+.configPane_options {
+  min-height: 1198px;
 }

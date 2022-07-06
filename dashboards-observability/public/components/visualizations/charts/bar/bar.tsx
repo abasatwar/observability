@@ -10,6 +10,7 @@ import { LONG_CHART_COLOR, PLOTLY_COLOR } from '../../../../../common/constants/
 import { AvailabilityUnitType } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_availability';
 import { ThresholdUnitType } from '../../../event_analytics/explorer/visualizations/config_panel/config_panes/config_controls/config_thresholds';
 import { hexToRgb } from '../../../event_analytics/utils/utils';
+import { EmptyPlaceholder } from '../../../event_analytics/explorer/visualizations/shared_components/empty_placeholder';
 import { FILLOPACITY_DIV_FACTOR } from '../../../../../common/constants/shared';
 
 export const Bar = ({ visualizations, layout, config }: any) => {
@@ -18,21 +19,17 @@ export const Bar = ({ visualizations, layout, config }: any) => {
     data,
     metadata: { fields },
   } = visualizations.data.rawVizData;
-  const { isUniColor } = vis.visConfig;
   const lastIndex = fields.length - 1;
   const {
     dataConfig = {},
     layoutConfig = {},
     availabilityConfig = {},
   } = visualizations?.data?.userConfigs;
-  let multiMetrics = {};
   const dataConfigTab = visualizations.data?.rawVizData?.bar?.dataConfig && visualizations.data.rawVizData.bar.dataConfig;
   const xaxis = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
   const yaxis = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
   console.log('data in bar--dataConfigTab--', dataConfigTab)
-
   const barOrientation = dataConfig?.chartStyles?.orientation || vis.orientation;
-  const { defaultAxes } = visualizations.data;
   const tickAngle = dataConfig?.chartStyles?.rotateBarLabels || vis.labelAngle
   const lineWidth = dataConfig?.chartStyles?.lineWidth || vis.lineWidth;
   const fillOpacity = dataConfig?.chartStyles?.fillOpacity !== undefined ? dataConfig?.chartStyles?.fillOpacity / FILLOPACITY_DIV_FACTOR : vis.fillOpacity / FILLOPACITY_DIV_FACTOR;
@@ -43,94 +40,105 @@ export const Bar = ({ visualizations, layout, config }: any) => {
   const legendPosition = dataConfig?.legend?.position || vis.legendPosition;
   visualizations.data?.rawVizData?.dataConfig?.metrics ? visualizations.data?.rawVizData?.dataConfig?.metrics : [];
   const labelSize = dataConfig?.chartStyles?.labelSize || 14;
-  const getSelectedColorTheme = (field: any, index: number) => dataConfig?.colorTheme?.length > 0 && dataConfig.colorTheme.find(
-    (colorSelected) => colorSelected.name.name === field.label)?.color || PLOTLY_COLOR[index % PLOTLY_COLOR.length];
+  let bars,valueSeries, valueForXSeries;
+  const getSelectedColorTheme = (field: any, index: number) => 
+  dataConfig?.colorTheme?.length > 0 && dataConfig.colorTheme.find(
+    (colorSelected) => colorSelected.name.name === field.label)?.color 
+    || PLOTLY_COLOR[index % PLOTLY_COLOR.length];
 
-  let valueSeries, valueForXSeries;
   if (!isEmpty(xaxis) && !isEmpty(yaxis)) {
     valueSeries = isVertical ? [...yaxis] : [...xaxis];
     valueForXSeries = isVertical ? [...xaxis] : [...yaxis];
   } else {
-    valueSeries = defaultAxes.yaxis || take(fields, lastIndex > 0 ? lastIndex : 1);
-    valueForXSeries = defaultAxes.xaxis; // TODO: add or condition
+    return <EmptyPlaceholder icon={visualizations?.vis?.iconType} />;
   }
-// // for multiple dimention and metrics
-// debugger
-//   const dimensionsData = [
-//     ...valueForXSeries.map((dimension: any) =>
-//       data[dimension.label]
-//     ),
-//   ].reduce(function (prev, cur) {
-//     return prev.map(function (i, j) {
-//       return `${i}, ${cur[j]}`;
-//     });
-//   });
-//   const metricsData = [
-//     ...valueSeries.map((dimension: any) =>
-//       data[dimension.label]
-//     ),
-//   ].reduce(function (prev, cur) {
-//     return prev.map(function (i, j) {
-//       return `${i}, ${cur[j]}`;
-//     });
-//   });
-
-//    console.log('dimensionsData =====', dimensionsData);
-  // console.log('metricsData =====', metricsData);
-
-//   let bars = valueSeries.map((field: any, index: number) => {
-//     const selectedColor = getSelectedColorTheme(field, index);
-//     return {
-//       x: isVertical
-//         ? !isEmpty(xaxis) ? dimensionsData : data[fields[lastIndex].name]
-//         : data[field.name],
-//       y: isVertical
-//         ? data[field.name]
-//         : metricsData, // TODO: add if isempty true
-//       type: vis.type,
-//       marker: {
-//         color: hexToRgb(selectedColor, fillOpacity),
-//         line: {
-//           color: selectedColor,
-//           width: lineWidth
-//         }
-//       },
-//       name: field.name,
-//       orientation: barOrientation,
-//     };
-//   });
-
-//for mulitple dimension, metrics and timestamp
-
-//const filteredValueForXSeries = valueForXSeries.filter((item) => item.type !== 'timestamp');
-  const nameData = [...(valueForXSeries
-  .filter(item=> item.type !== 'timestamp'))
-  .map(dimension => data[dimension.label])]
-  .reduce(function (prev, cur) {
-    return prev.map(function (i, j) {
-      return `${i}, ${cur[j]}`;
+  const prepareData = (valueForXSeries) =>{
+    return [
+      ...valueForXSeries.map((dimension: any) =>
+        data[dimension.label]
+      ),
+    ]?.reduce(function (prev, cur) {
+      return prev.map(function (i, j) {
+        return `${i}, ${cur[j]}`;
+      });
     });
-  });
-  console.log('no timestamps dimensions after reduce', nameData)
+  }
+  const createNameData = (nameData, metricName: string) => {
+    let newArr = nameData?.map(el => el + ',' + metricName)
+        return newArr;
+  }
+  if (valueForXSeries.some(e => e.type === 'timestamp')) {
+  // for multiple dimention and metrics with timestamp
+    const nameData = valueForXSeries.length > 1? [...(valueForXSeries
+      .filter(item => item.type !== 'timestamp'))
+      .map(dimension => data[dimension.label])]
+      .reduce(function (prev, cur) {
+        return prev.map(function (i, j) {
+          return `${i}, ${cur[j]}`;
+        });
+      }): [];
+    console.log('no timestamps nameData', nameData)
 
-  let  dimensionsData = [...(valueForXSeries
-    .filter(item => item.type === 'timestamp'))
-    .map(dimension => data[dimension.label])];
-  dimensionsData = [].concat.apply([], dimensionsData);
-console.log('no timestamps dimensions', dimensionsData)
+    let dimensionsData = [...(valueForXSeries
+      .filter(item => item.type === 'timestamp'))
+      .map(dimension => data[dimension.label])];
+    dimensionsData = [].concat.apply([], dimensionsData);
 
-// [...(valueForXSeries.filter(item=> item.type !== 'timestamp')).map(dimension => data[dimension.label])]
+    console.log('timestamps dimensions', dimensionsData)
 
-  let bars = valueSeries.map((field: any, index: number) => {
+     bars = valueSeries.map((field: any, index: number) => {
+      const selectedColor = getSelectedColorTheme(field, index);
+      return dimensionsData.map((dimension: any, j: number) => {
+        return {
+          x: isVertical
+            ? !isEmpty(xaxis) ? dimension : data[fields[lastIndex].name]
+            : data[field.label],
+          y: isVertical
+            ? data[field.label][j]
+            : dimensionsData, // TODO: add if isempty true
+          type: vis.type,
+          marker: {
+            color: hexToRgb(selectedColor, fillOpacity),
+            line: {
+              color: selectedColor,
+              width: lineWidth
+            }
+          },
+          name: nameData.length > 0 ? createNameData(nameData, field.label)[j] : field.label, // dimensionsData[index]+ ',' + field.label,
+          orientation: barOrientation,
+        };
+      });
+    });
+    bars = [].concat.apply([], bars);
+    console.log('bars----after', bars)
+
+    // merging x, y for same names
+     bars = Object.values(bars?.reduce((acc, { x, y, name, type, marker, orientation }) => {
+        acc[name] = acc[name] || { x:[], y:[], name, type, marker, orientation};
+        acc[name].x.push(x);
+        acc[name].y.push(y);
+        
+        return acc;
+    }, {}));
+  
+    console.log('result--', bars);
+  
+  } else {
+
+  const dimensionsData = prepareData(valueForXSeries);
+  const metricsData = prepareData(valueSeries);
+
+   console.log('dimensionsData =====', dimensionsData);
+console.log('metricsData =====', metricsData);
+  bars = valueSeries.map((field: any, index: number) => {
     const selectedColor = getSelectedColorTheme(field, index);
-    console.log('bars--name--', dimensionsData+ ',' + field.label)
     return {
       x: isVertical
         ? !isEmpty(xaxis) ? dimensionsData : data[fields[lastIndex].name]
-        : data[field.label],
+        : data[field.name],
       y: isVertical
-        ? data[field.label]
-        : dimensionsData, // TODO: add if isempty true
+        ? data[field.name]
+        : metricsData, // TODO: add if isempty true
       type: vis.type,
       marker: {
         color: hexToRgb(selectedColor, fillOpacity),
@@ -139,19 +147,21 @@ console.log('no timestamps dimensions', dimensionsData)
           width: lineWidth
         }
       },
-      name: dimensionsData[index]+ ',' + field.label,
+      name: field.name,
       orientation: barOrientation,
     };
-  });
-
-  console.log('bars----', bars)
-
-
+  });}
+  
+ 
+  console.log('bars----after', bars)
+   //for mulitple dimension, metrics and timestamp
+  //const filteredValueForXSeries = valueForXSeries.filter((item) => item.type !== 'timestamp');
+  
+ 
   // If chart has length of result buckets < 16
   // then use the LONG_CHART_COLOR for all the bars in the chart
   const plotlyColorway =
     data[fields[lastIndex].name].length < 16 ? PLOTLY_COLOR : [LONG_CHART_COLOR];
-
   const mergedLayout = {
     colorway: plotlyColorway,
     ...layout,
@@ -170,7 +180,6 @@ console.log('no timestamps dimensions', dimensionsData)
     },
     showlegend: showLegend,
   };
-
   if (dataConfig.thresholds || availabilityConfig.level) {
     const thresholdTraces = {
       x: [],
@@ -208,7 +217,6 @@ console.log('no timestamps dimensions', dimensionsData)
     mergedLayout.shapes = [...mapToLine(thresholds, { dash: 'dashdot' }), ...mapToLine(levels, {})];
     bars = [...bars, thresholdTraces];
   }
-
   const mergedConfigs = {
     ...config,
     ...(layoutConfig.config && layoutConfig.config),

@@ -21,7 +21,9 @@ import {
   renderTreeMapchart,
   renderPieChart,
   renderLineChartForDataConfig,
-  DataConfigLineChart
+  DataConfigLineChart,
+  renderBarChart,
+  renderDataConfigBarChart
 } from '../utils/event_constants';
 import { supressResizeObserverIssue } from '../utils/constants';
 
@@ -855,5 +857,124 @@ describe('Render Time series chart/Line chart and verify Data configurations UI 
   it('Render line chart and verify Data Configuration Panel', () => {
     renderLineChartForDataConfig();
     DataConfigLineChart();
+  });
+});
+
+describe('Render bar chart and verify by default "no results found" message should be seen', () => {
+  it('Render bar chart and verify by default "no results found" message should be seen', () => {
+    renderBarChart();
+    cy.get('.euiTextColor.euiTextColor--subdued').contains('No results found').should('exist');
+  });
+});
+
+describe('Render bar chart and verify "data configuration" panel', () => {
+  beforeEach(() => {
+    renderBarChart();
+    renderDataConfigBarChart();
+  });
+
+  it('Render bar chart and verify data gets render when click on preview button', () => {
+    cy.get('.xy').should('exist');
+  });
+
+  it('Render bar chart and verify you can add and remove dimensions in "data configuration" panel', () => {
+    cy.get('.euiButton__text').contains('Add').click();
+    cy.get('.euiComboBoxPlaceholder').contains('Select a field').should('have.length', 1);
+    cy.get('.euiText.euiText--extraSmall').eq(1).click();
+    cy.get('.euiComboBoxPlaceholder').should('not.have.value', 'Select a field');
+  });
+
+  it('Render bar chart and verify you can add or remove multiple metrics in "data configuration" panel', () => {
+    cy.get('.euiButton__text').eq(5).click();
+    cy.get('.euiComboBoxPlaceholder').contains('Select a field').should('have.length', 1);
+    cy.get('.euiText.euiText--extraSmall').eq(1).click();
+    cy.get('.euiComboBoxPlaceholder').should('not.have.value', 'Select a field');
+  });
+});
+
+describe('Render bar chart and work with legend', () => {
+  beforeEach(() => {
+    renderBarChart();
+    renderDataConfigBarChart();
+  });
+  
+  it('Render bar chart and verify legends for show and hidden', () => {
+    cy.get('[data-text="Show"]').should('have.text', 'Show');
+    cy.get('[data-text="Show"] [data-test-subj="show"]').should('have.attr', 'checked');
+    cy.get('[data-text="Hidden"]').should('have.text', 'Hidden').click();
+    cy.get('[data-text="Hidden"] [data-test-subj="hidden"]').should('not.have.attr', 'checked');
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+  
+  it('Render bar chart and verify legends for Position right and bottom', () => {
+    cy.get('[data-text="Right"]').eq(1).should('have.text', 'Right');
+    cy.get('[data-text="Right"] [data-test-subj="v"]').should('have.attr', 'checked');
+    cy.get('[data-text="Bottom"]').should('have.text', 'Bottom').click();
+    cy.get('[data-text="Bottom"] [data-test-subj="h"]').should('not.have.attr', 'checked');
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+});
+
+describe('Render bar chart for chart style options', () => {
+  beforeEach(() => {
+    renderBarChart();
+    renderDataConfigBarChart();
+  });
+
+  it('Render bar chart and "Rotate bar labels"', () => {
+    cy.get('input[type="range"]').eq(0)
+      .then($el => $el[0].stepUp(45))
+      .trigger('change')
+    cy.get('.euiRangeSlider').eq(0).should('have.value', 45)
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+
+  });
+
+  it('Render bar chart and change "Group width"', () => {
+    cy.get('input[type="range"]').eq(1)
+      .then($el => $el[0].stepUp(10))
+      .trigger('change')
+    cy.get('.euiRangeSlider').eq(1).should('have.value', .8)
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+
+  it('Render bar chart and change "Bar width"', () => {
+    cy.get('input[type="range"]').eq(2)
+      .then($el => $el[0].stepDown(10))
+      .trigger('change')
+    cy.get('.euiRangeSlider').eq(4).should('have.value', 80)
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+
+  it('Render bar chart and change "Line width"', () => {
+    cy.get('input[type="range"]').eq(3)
+      .then($el => $el[0].stepUp(7))
+      .trigger('change')
+    cy.get('.euiRangeSlider').eq(3).should('have.value', 8)
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+
+  it('Render bar chart and change "Fill Opacity"', () => {
+    cy.get('input[type="range"]').eq(4)
+      .then($el => $el[0].stepUp(10))
+      .trigger('change')
+    cy.get('.euiRangeSlider').eq(4).should('have.value', 90)
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+  });
+});
+
+describe('Render bar chart for color theme', () => {
+  beforeEach(() => {
+    renderBarChart();
+    renderDataConfigBarChart();
+  });
+
+  it('Render bar chart and "add color theme"', () => {
+    cy.get('.euiButton__text').contains('+ Add color theme').click();
+    cy.wait(delay);
+    cy.get('[data-test-subj="comboBoxInput"]').contains('Select a field').click({force: true});
+    cy.get('.euiComboBoxOption__content').contains('avg(FlightDelayMin)').click();
+    cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
+    cy.get('.point').find('path[style*="rgb(252, 5, 5)"]').should('have.length', 4);
   });
 });

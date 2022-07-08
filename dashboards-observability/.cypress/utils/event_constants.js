@@ -138,3 +138,20 @@ export const renderLineChart = () => {
   querySearch(TEST_QUERIES[5].query, TEST_QUERIES[5].dateRangeDOM);
   cy.get('[data-test-subj="configPane__vizTypeSelector"] [data-test-subj="comboBoxInput"]').type('Line').type('{enter}');
 };
+
+export const renderBarChart = () => {
+  landOnEventVisualizations();
+  querySearch(TEST_QUERIES[1].query, TEST_QUERIES[1].dateRangeDOM);
+  cy.get('[data-test-subj="configPane__vizTypeSelector"] [data-test-subj="comboBoxInput"]').type('Bar').type('{enter}');
+};
+
+export const renderDataConfigBarChart = () => {
+  cy.get('.euiResizablePanel.euiResizablePanel--middle').contains('Data Configurations').should('exist');
+  cy.get('.euiTitle.euiTitle--xxsmall').contains('Dimensions').should('exist');
+  cy.get('.euiComboBoxPill.euiComboBoxPill--plainText').contains('Carrier').should('exist');
+  cy.get('.euiTitle.euiTitle--xxsmall').contains('Metrics').should('exist');
+  cy.get('.euiComboBoxPill.euiComboBoxPill--plainText').contains('avg(FlightDelayMin)').should('exist');
+  cy.get('.euiResizablePanel.euiResizablePanel--collapsible.euiResizablePanel--middle .euiButton__text')
+  .contains('Update chart')
+  .click();
+};

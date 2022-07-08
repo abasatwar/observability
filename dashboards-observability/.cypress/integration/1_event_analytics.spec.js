@@ -27,6 +27,16 @@ import {
 } from '../utils/event_constants';
 import { supressResizeObserverIssue } from '../utils/constants';
 
+const rotateAngle = 45;
+const groupWidth = 10;
+const groupWidthModified = .8;
+const barWidth = 10;
+const barWidthModified = 80; 
+const lineWidth = 7;
+const lineWidthModified =8;
+const fillOpacity = 10;
+const fillOpacityModified = 90;
+
 const vis_name_sub_string = Math.floor(Math.random() * 100);
 const saveVisualizationAndVerify = () => {
   cy.get('[data-test-subj="eventExplorer__saveManagementPopover"]').click();
@@ -923,42 +933,42 @@ describe('Render bar chart for chart style options', () => {
 
   it('Render bar chart and "Rotate bar labels"', () => {
     cy.get('input[type="range"]').eq(0)
-      .then($el => $el[0].stepUp(45))
+      .then($el => $el[0].stepUp(rotateAngle))
       .trigger('change')
-    cy.get('.euiRangeSlider').eq(0).should('have.value', 45)
+    cy.get('.euiRangeSlider').eq(0).should('have.value', rotateAngle)
     cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
 
   });
 
   it('Render bar chart and change "Group width"', () => {
     cy.get('input[type="range"]').eq(1)
-      .then($el => $el[0].stepUp(10))
+      .then($el => $el[0].stepUp(groupWidth))
       .trigger('change')
-    cy.get('.euiRangeSlider').eq(1).should('have.value', .8)
+    cy.get('.euiRangeSlider').eq(1).should('have.value', groupWidthModified)
     cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
   });
 
   it('Render bar chart and change "Bar width"', () => {
     cy.get('input[type="range"]').eq(2)
-      .then($el => $el[0].stepDown(10))
+      .then($el => $el[0].stepDown(barWidth))
       .trigger('change')
-    cy.get('.euiRangeSlider').eq(4).should('have.value', 80)
+    cy.get('.euiRangeSlider').eq(4).should('have.value', barWidthModified)
     cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
   });
 
   it('Render bar chart and change "Line width"', () => {
     cy.get('input[type="range"]').eq(3)
-      .then($el => $el[0].stepUp(7))
+      .then($el => $el[0].stepUp(lineWidth))
       .trigger('change')
-    cy.get('.euiRangeSlider').eq(3).should('have.value', 8)
+    cy.get('.euiRangeSlider').eq(3).should('have.value', lineWidthModified)
     cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
   });
 
   it('Render bar chart and change "Fill Opacity"', () => {
     cy.get('input[type="range"]').eq(4)
-      .then($el => $el[0].stepUp(10))
+      .then($el => $el[0].stepUp(fillOpacity))
       .trigger('change')
-    cy.get('.euiRangeSlider').eq(4).should('have.value', 90)
+    cy.get('.euiRangeSlider').eq(4).should('have.value', fillOpacityModified)
     cy.get('[data-test-subj="visualizeEditorRenderButton"]').contains('Preview').click();
   });
 });

@@ -26,8 +26,9 @@ export const Bar = ({ visualizations, layout, config }: any) => {
     availabilityConfig = {},
   } = visualizations?.data?.userConfigs;
   const dataConfigTab = visualizations.data?.rawVizData?.bar?.dataConfig && visualizations.data.rawVizData.bar.dataConfig;
-  const xaxis = dataConfigTab?.dimensions ? dataConfigTab?.dimensions : [];
-  const yaxis = dataConfigTab?.metrics ? dataConfigTab?.metrics : [];
+  const xaxis = dataConfigTab?.dimensions ? dataConfigTab?.dimensions.filter((item)  => item.label) : [];
+  const yaxis = dataConfigTab?.metrics ? dataConfigTab?.metrics.filter((item)  => item.label) : [];
+
   console.log('data in bar--dataConfigTab--', dataConfigTab)
   const barOrientation = dataConfig?.chartStyles?.orientation || vis.orientation;
   const tickAngle = dataConfig?.chartStyles?.rotateBarLabels || vis.labelAngle

@@ -43,6 +43,20 @@ const lineWidthModified =8;
 const fillOpacityBar = 10;
 const fillOpacityModified = 90;
 
+const renderHistogramChart = () => {
+  querySearch(TEST_QUERIES[5].query, TEST_QUERIES[5].dateRangeDOM);
+  cy.get('[data-test-subj="configPane__vizTypeSelector"] [data-test-subj="comboBoxInput"]').type('Histogram').type('{enter}');
+  cy.wait(delay);
+    cy.get('g.draglayer.cursor-crosshair').should('exist');
+    cy.get('#configPanel__panelOptions .euiFieldText').click().type('Histogram chart');
+    cy.get('.euiFlexItem .euiFormRow [placeholder="Description"]').click().type('This is the description for Histogram chart');
+    cy.get('.euiIEFlexWrapFix').eq(1).contains('Chart Styles').should('exist');
+    cy.get('.euiFormLabel.euiFormRow__label').eq(2).contains('Bucket Size');
+    cy.get('.euiFieldNumber').eq(0).type('4');
+    cy.get('.euiFormLabel.euiFormRow__label').eq(3).contains('Bucket Offset');
+    cy.get('.euiFieldNumber').eq(0).type('6');
+};
+
 const vis_name_sub_string = Math.floor(Math.random() * 100);
 const saveVisualizationAndVerify = () => {
   cy.get('[data-test-subj="eventExplorer__saveManagementPopover"]').click();
@@ -1102,6 +1116,27 @@ describe('Render bar chart for color theme', () => {
   });
 });
 
+describe('Renders Histogram chart', () => {
+  beforeEach(() => {
+    landOnEventVisualizations();
+});
+
+it('Renders Histogram chart and save visualization', () => {
+  renderHistogramChart();
+    cy.get('.euiFlexItem.euiFlexItem--flexGrowZero .euiButton__text').eq(2).click();
+    cy.wait(delay);
+    saveVisualizationAndVerify();
+  });
+
+ it('Delete Visualization for Histogram chart from list of saved Visualizations on Event analytics page', () =>{
+  deleteVisualization();
+ })
+
+ it('Renders Histogram chart, add value parameters and verify Reset button click is working', () => {
+  renderHistogramChart();
+    cy.get('[data-test-subj="visualizeEditorResetButton"]').click();
+  });
+});
 describe('Render Gauge Chart and verify if data gets render', () => {
   it('Render gauge chart and verify by default no data gets render', () => {
     renderGaugeChart();

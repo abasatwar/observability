@@ -21,6 +21,8 @@ import {
   renderTreeMapchart,
   renderPieChart,
   renderLineChartForDataConfig,
+  renderDataConfig,
+  aggregationValues,
   DataConfigLineChart,
   renderHeatmapChart,
   renderGaugeChart,
@@ -947,6 +949,49 @@ describe('Render heatmap chart and verify chart is seen if all the feilds select
       .contains('Update chart')
       .click();
     cy.get('.xy').should('exist');
+  });
+});
+
+describe('Renders Data Configurations section for Pie chart', () => {
+  beforeEach(() => {
+    landOnEventVisualizations();
+  });
+
+  it('Renders Dimensions and Metrics under Data Configurations for Pie chart', () => {
+    renderPieChart();
+    renderDataConfig();
+  });
+
+  it('Validate "Add" and "X" buttons', () => {
+    renderPieChart();
+    cy.get('.euiResizablePanel.euiResizablePanel--middle').contains('Data Configurations');
+    cy.get('.euiButton.euiButton--primary.euiButton--fullWidth').contains('Add').click();
+    cy.get('.euiFormRow__fieldWrapper .euiComboBox').eq(3).click();
+    cy.get('.euiComboBoxOption__content').eq(2).click();
+    cy.get('.first-division .euiFormLabel.euiFormRow__label').eq(4).click();
+    cy.get('.euiComboBoxOption__content').eq(1).click();
+    cy.get('.euiFieldText[placeholder="Custom label"]').eq(1).type('Demo field');
+    cy.get('.euiIcon.euiIcon--medium.euiIcon--danger').eq(1).click();
+    cy.get('.euiButton.euiButton--primary.euiButton--fullWidth').contains('Add').should('exist');
+  });
+
+  it('Verify drop down values for Aggregation', () => {
+    renderPieChart();
+    cy.get('.euiResizablePanel.euiResizablePanel--middle').contains('Data Configurations');
+    cy.get('.euiTitle.euiTitle--xxsmall').eq(1).contains('Dimensions').should('exist');
+    cy.get('.first-division .euiFormLabel.euiFormRow__label').eq(0).contains('Aggregation');
+    cy.get('[data-test-subj="comboBoxSearchInput"]').eq(0).click();
+    aggregationValues.forEach(function (value){
+      cy.get('.euiComboBoxOption__content').contains(value);
+    });
+  });
+
+  it('Collapsible mode for Data Configuration panel', () => {
+    renderPieChart();
+    cy.get('.euiResizablePanel.euiResizablePanel--middle').contains('Data Configurations');
+    cy.get('.euiResizableButton.euiResizableButton--horizontal').eq(1).click();
+    cy.get('[data-test-subj="panel-1-toggle"]').click();
+    cy.get('[class*="euiResizableToggleButton-isCollapsed"]').eq(1).should('exist');
   });
 });
 

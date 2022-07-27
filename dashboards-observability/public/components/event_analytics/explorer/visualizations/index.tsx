@@ -55,8 +55,14 @@ export const ExplorerVisualizations = ({
     return { ...field, label: field.name };
   });
 
+  const syntheticResize = () => {
+    let evt = window.document.createEvent('UIEvents'); 
+    evt.initUIEvent('resize', true, false, window, 0); 
+    window.dispatchEvent(evt);
+  }
+
   return (
-    <EuiResizableContainer>
+    <EuiResizableContainer onPanelWidthChange={syntheticResize} >
       {(EuiResizablePanel, EuiResizableButton) => (
         <>
           <EuiResizablePanel

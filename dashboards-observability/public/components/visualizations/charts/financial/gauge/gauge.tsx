@@ -52,94 +52,94 @@ export const Gauge = ({ visualizations, layout, config }: any) => {
 
   const gaugeData: Plotly.Data[] = useMemo(() => {
     let calculatedGaugeData: Plotly.Data[] = [];
-    if (dimensionsLength || metricsLength) {
-      // case 1,2: no dimension, single/multiple metrics
-      if (!dimensionsLength && metricsLength >= 1) {
-        calculatedGaugeData = metrics.map((metric: any) => {
-          return {
-            field_name: metric.name,
-            value: data[metric.name][0],
-          };
-        });
-      }
-
-      // case 3: multiple dimensions and multiple metrics
-      if (dimensionsLength && metricsLength) {
-        const selectedDimensionsData = dimensions
-          .map((dimension: any) => data[dimension.name].slice(0, numberOfGauges))
-          .reduce((prev, cur) => {
-            return prev.map((i, j) => `${i}, ${cur[j]}`);
-          });
-
-        const selectedMetricsData = metrics.map((metric: any) =>
-          data[metric.name].slice(0, numberOfGauges)
-        );
-
-        selectedMetricsData.map((metricSlice: any, metricSliceIndex: number) => {
-          calculatedGaugeData = [
-            ...calculatedGaugeData,
-            ...metricSlice.map((metricSliceData: any, metricSliceDataIndex: number) => {
-              return {
-                field_name: `${selectedDimensionsData[metricSliceDataIndex]}, ${metrics[metricSliceIndex].name}`,
-                value: metricSliceData,
-              };
-            }),
-          ];
-        });
-      }
-
-      return calculatedGaugeData.map((gauge, index) => {
+    // if (dimensionsLength || metricsLength) {
+    // case 1,2: no dimension, single/multiple metrics
+    if (!dimensionsLength && metricsLength >= 1) {
+      calculatedGaugeData = metrics.map((metric: any) => {
         return {
-          type: 'indicator',
-          mode: 'gauge+number+delta',
-          value: gauge.value || 0,
-          title: {
-            text: gauge.field_name,
-            font: { size: titleSize },
-            align: legendPlacement,
-          },
-          ...(valueSize && {
-            number: {
-              font: {
-                size: valueSize,
-              },
-            },
-          }),
-          domain: {
-            ...(orientation === 'auto' || orientation === 'h'
-              ? {
-                  row: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
-                  column: index % PLOTLY_GAUGE_COLUMN_NUMBER,
-                }
-              : {
-                  column: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
-                  row: index % PLOTLY_GAUGE_COLUMN_NUMBER,
-                }),
-          },
-          gauge: {
-            ...(showThresholdMarkers &&
-              thresholds &&
-              thresholds.length && {
-                threshold: {
-                  line: { color: thresholds[0]?.color || 'red', width: 4 },
-                  thickness: 0.75,
-                  value: thresholds[0]?.value || 0,
-                },
-              }),
-            //threshold labels
-            ...(showThresholdLabels && thresholds && thresholds.length
-              ? {
-                  axis: {
-                    ticktext: [gauge.value, ...thresholds.map((t: ThresholdUnitType) => t.name)],
-                    tickvals: [gauge.value, ...thresholds.map((t: ThresholdUnitType) => t.value)],
-                    ticklen: TickLength,
-                  },
-                }
-              : {}),
-          },
+          field_name: metric.name,
+          value: data[metric.name][0],
         };
       });
     }
+
+    // case 3: multiple dimensions and multiple metrics
+    if (dimensionsLength && metricsLength) {
+      const selectedDimensionsData = dimensions
+        .map((dimension: any) => data[dimension.name].slice(0, numberOfGauges))
+        .reduce((prev, cur) => {
+          return prev.map((i, j) => `${i}, ${cur[j]}`);
+        });
+
+      const selectedMetricsData = metrics.map((metric: any) =>
+        data[metric.name].slice(0, numberOfGauges)
+      );
+
+      selectedMetricsData.map((metricSlice: any, metricSliceIndex: number) => {
+        calculatedGaugeData = [
+          ...calculatedGaugeData,
+          ...metricSlice.map((metricSliceData: any, metricSliceDataIndex: number) => {
+            return {
+              field_name: `${selectedDimensionsData[metricSliceDataIndex]}, ${metrics[metricSliceIndex].name}`,
+              value: metricSliceData,
+            };
+          }),
+        ];
+      });
+    }
+
+    return calculatedGaugeData.map((gauge, index) => {
+      return {
+        type: 'indicator',
+        mode: 'gauge+number+delta',
+        value: gauge.value || 0,
+        title: {
+          text: gauge.field_name,
+          font: { size: titleSize },
+          align: legendPlacement,
+        },
+        ...(valueSize && {
+          number: {
+            font: {
+              size: valueSize,
+            },
+          },
+        }),
+        domain: {
+          ...(orientation === 'auto' || orientation === 'h'
+            ? {
+                row: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
+                column: index % PLOTLY_GAUGE_COLUMN_NUMBER,
+              }
+            : {
+                column: Math.floor(index / PLOTLY_GAUGE_COLUMN_NUMBER),
+                row: index % PLOTLY_GAUGE_COLUMN_NUMBER,
+              }),
+        },
+        gauge: {
+          ...(showThresholdMarkers &&
+            thresholds &&
+            thresholds.length && {
+              threshold: {
+                line: { color: thresholds[0]?.color || 'red', width: 4 },
+                thickness: 0.75,
+                value: thresholds[0]?.value || 0,
+              },
+            }),
+          //threshold labels
+          ...(showThresholdLabels && thresholds && thresholds.length
+            ? {
+                axis: {
+                  ticktext: [gauge.value, ...thresholds.map((t: ThresholdUnitType) => t.name)],
+                  tickvals: [gauge.value, ...thresholds.map((t: ThresholdUnitType) => t.value)],
+                  ticklen: TickLength,
+                },
+              }
+            : {}),
+        },
+      };
+    });
+    // }
     return calculatedGaugeData;
   }, [
     dimensions,

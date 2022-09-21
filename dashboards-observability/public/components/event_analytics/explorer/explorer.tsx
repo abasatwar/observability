@@ -78,7 +78,6 @@ import { getVizContainerProps } from '../../visualizations/charts/helpers';
 import { parseGetSuggestions, onItemSelect } from '../../common/search/autocomplete_logic';
 import { formatError } from '../utils';
 import { sleep } from '../../common/live_tail/live_tail_button';
-import { QueryManager } from '../../../../common/query_manager/ppl_query_manager';
 
 const TYPE_TAB_MAPPING = {
   [SAVED_QUERY]: TAB_EVENT_ID,
@@ -107,6 +106,7 @@ export const Explorer = ({
   setEndTime,
   callback,
   callbackInApp,
+  qm,
 }: IExplorerProps) => {
   const dispatch = useDispatch();
   const requestParams = { tabId };
@@ -143,7 +143,9 @@ export const Explorer = ({
   const [browserTabFocus, setBrowserTabFocus] = useState(true);
   const [liveTimestamp, setLiveTimestamp] = useState(DATE_PICKER_FORMAT);
   const [triggerAvailability, setTriggerAvailability] = useState(false);
-  const [isValidDataConfigOptionSelected, setIsValidDataConfigOptionSelected] = useState<Boolean>(false);
+  const [isValidDataConfigOptionSelected, setIsValidDataConfigOptionSelected] = useState<boolean>(
+    false
+  );
 
   const queryRef = useRef();
   const appBasedRef = useRef('');
@@ -491,7 +493,6 @@ export const Explorer = ({
     handleQuerySearch(availability);
   };
 
-
   /**
    * Toggle fields between selected and unselected sets
    * @param field field to be toggled
@@ -745,8 +746,8 @@ export const Explorer = ({
     }
   };
 
-  const changeIsValidConfigOptionState = (isValidConfig: Boolean) =>
-  setIsValidDataConfigOptionSelected(isValidConfig);
+  const changeIsValidConfigOptionState = (isValidConfig: boolean) =>
+    setIsValidDataConfigOptionSelected(isValidConfig);
 
   const getExplorerVis = () => {
     return (
@@ -763,6 +764,7 @@ export const Explorer = ({
         handleOverrideTimestamp={handleOverrideTimestamp}
         callback={callbackForConfig}
         changeIsValidConfigOptionState={changeIsValidConfigOptionState}
+        qm={qm}
       />
     );
   };
@@ -825,14 +827,12 @@ export const Explorer = ({
 
   const handleQuerySearch = useCallback(
     async (availability?: boolean) => {
-
       // clear previous selected timestamp when index pattern changes
       if (
         !isEmpty(tempQuery) &&
         !isEmpty(query[RAW_QUERY]) &&
         isIndexPatternChanged(tempQuery, query[RAW_QUERY])
       ) {
-
         await updateCurrentTimeStamp('');
       }
       if (availability !== true) {
@@ -842,13 +842,31 @@ export const Explorer = ({
 
       if (selectedContentTabId === TAB_CHART_ID) {
         // parse stats section on every search
-        const qm = new QueryManager();
-        const statsTokens = 
-          qm
-            .queryParser()
-            .parse(tempQuery)
-            .getStats();
-            
+        const statsTokens = qm.queryParser().parse(tempQuery).getStats();
+        const timeUnitValue = TIME_INTERVAL_OPTIONS.find(
+          (time_unit) => time_unit.value === statsTokens.groupby?.span.span_expression.time_unit
+        )?.text;
+        const span =
+          statsTokens.groupby?.span !== null
+            ? {
+                time_field: [
+                  {
+                    name: statsTokens.groupby?.span.span_expression.field,
+                    type: 'timestamp',
+                    label: statsTokens.groupby?.span.span_expression.field,
+                  },
+                ],
+                unit: [
+                  {
+                    text: timeUnitValue,
+                    value: statsTokens.groupby?.span.span_expression.time_unit,
+                    label: timeUnitValue,
+                  },
+                ],
+                interval: statsTokens.groupby?.span.span_expression.literal_value,
+              }
+            : undefined;
+
         await dispatch(
           changeVizConfig({
             tabId,
@@ -864,6 +882,7 @@ export const Explorer = ({
                   label: agg.name ?? '',
                   name: agg.name ?? '',
                 })),
+                span,
               },
             },
           })
@@ -1190,7 +1209,7 @@ export const Explorer = ({
         explorerFields,
         explorerData,
         http,
-        query
+        query,
       }}
     >
       <div className="dscAppContainer">

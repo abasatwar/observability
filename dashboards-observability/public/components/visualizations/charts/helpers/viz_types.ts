@@ -13,6 +13,7 @@ import {
 } from '../../../../../common/types/explorer';
 import { visChartTypes } from '../../../../../common/constants/shared';
 import { QueryManager } from '../../../../../common/query_manager';
+import { TIME_INTERVAL_OPTIONS } from '../../../../../common/constants/explorer';
 interface IVizContainerProps {
   vizId: string;
   appData?: { fromApp: boolean };
@@ -43,12 +44,12 @@ const initialEntryTreemap = { label: '', name: '' };
 
 const getDefaultXYAxisLabels = (vizFields: IField[], visName: string) => {
   if (isEmpty(vizFields)) return {};
-  const vizFieldsWithLabel: { [key: string]: string }[] = vizFields.map((vizField) => ({
+  const vizFieldsWithLabel: Array<{ [key: string]: string }> = vizFields.map((vizField) => ({
     ...vizField,
     label: vizField.name,
   }));
 
-  const mapXaxis = (): { [key: string]: string }[] => {
+  const mapXaxis = (): Array<{ [key: string]: string }> => {
     const xaxis = vizFieldsWithLabel.filter((field) => field.type === 'timestamp');
     return visName === visChartTypes.Line
       ? xaxis.length === 0
@@ -57,7 +58,7 @@ const getDefaultXYAxisLabels = (vizFields: IField[], visName: string) => {
       : [vizFieldsWithLabel[vizFieldsWithLabel.length - 1]];
   };
 
-  const mapYaxis = (): { [key: string]: string }[] =>
+  const mapYaxis = (): Array<{ [key: string]: string }> =>
     visName === visChartTypes.Line
       ? vizFieldsWithLabel.filter((field) => field.type !== 'timestamp')
       : take(
@@ -92,7 +93,14 @@ const defaultUserConfigs = (queryString, visualizationName: string) => {
           : [],
         interval: statsTokens.groupby?.span?.span_expression?.literal_value ?? '0',
         unit: statsTokens.groupby?.span?.span_expression?.time_unit
-          ? [getStandardedOuiField(statsTokens.groupby?.span?.span_expression?.time_unit)]
+          ? [
+              getStandardedOuiField(
+                TIME_INTERVAL_OPTIONS.find(
+                  (time_unit) =>
+                    time_unit.value === statsTokens.groupby?.span.span_expression.time_unit
+                )?.text
+              ),
+            ]
           : [],
       },
     };

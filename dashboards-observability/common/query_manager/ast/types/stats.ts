@@ -22,7 +22,7 @@ export interface GroupField {
 }
 
 export interface SpanChunk {
-  alias: string;
+  customLabel: string;
   span_expression: SpanExpressionChunk;
 }
 
@@ -34,12 +34,12 @@ export interface SpanExpressionChunk {
 }
 
 export interface GroupByChunk {
-  group_fields: Array<GroupField>;
+  group_fields: GroupField[];
   span: SpanChunk | null;
 }
 
 export interface statsChunk {
-  aggregations: Array<StatsAggregationChunk>;
+  aggregations: StatsAggregationChunk[];
   groupby: GroupByChunk;
   partitions: ExpressionChunk;
   all_num: ExpressionChunk;
@@ -53,16 +53,16 @@ export interface ExpressionChunk {
   value: string | number;
 }
 
-export interface DataConfigMetric {
-  alias: string;
+export interface DataConfigSeries {
+  customLabel: string;
   label: string;
   name: string;
   aggregation: string;
 }
 
 export interface AggregationConfigurations {
-  metrics: Array<DataConfigMetric>;
-  dimensions: Array<GroupField>;
+  series: DataConfigSeries[];
+  dimensions: GroupField[];
   span: SpanChunk;
 }
 

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import './data_configurations_panel.scss';
+
 import React, { useEffect, useState, useContext, useCallback, useMemo } from 'react';
 import { some } from 'lodash';
 import {
@@ -18,18 +20,21 @@ import {
   EuiText,
   EuiFieldNumber,
   htmlIdGenerator,
+  EuiToolTip,
 } from '@elastic/eui';
 import { useDispatch, batch } from 'react-redux';
 import { changeQuery } from '../../../../../redux/slices/query_slice';
 import { change as changeVizConfig } from '../../../../../redux/slices/viualization_config_slice';
 import {
+  AGGREGATIONS,
   AGGREGATION_OPTIONS,
-  numericalTypes,
+  GROUPBY,
   RAW_QUERY,
   TIME_INTERVAL_OPTIONS,
+  CUSTOM_LABEL,
 } from '../../../../../../../../common/constants/explorer';
 import { ButtonGroupItem } from './config_button_group';
-import { visChartTypes } from '../../../../../../../../common/constants/shared';
+import { VIS_CHART_TYPES } from '../../../../../../../../common/constants/shared';
 import { ConfigList, DataConfigPanelProps } from '../../../../../../../../common/types/explorer';
 import { TabContext } from '../../../../../hooks';
 import { composeAggregations } from '../../../../../../../../common/query_manager/utils';
@@ -39,8 +44,8 @@ const initialDimensionEntry = {
   name: '',
 };
 
-const initialMetricEntry = {
-  alias: '',
+const initialSeriesEntry = {
+  [CUSTOM_LABEL]: '',
   label: '',
   name: '',
   aggregation: 'count',
@@ -49,12 +54,10 @@ const initialMetricEntry = {
 export const DataConfigPanelItem = ({
   fieldOptionList,
   visualizations,
-  qm,
+  queryManager,
 }: DataConfigPanelProps) => {
   const dispatch = useDispatch();
-  const { tabId, handleQuerySearch, handleQueryChange, setTempQuery, fetchData } = useContext<any>(
-    TabContext
-  );
+  const { tabId, handleQueryChange, fetchData, curVisId } = useContext<any>(TabContext);
   const { data } = visualizations;
   const { data: vizData = {}, metadata: { fields = [] } = {} } = data?.rawVizData;
   const {
@@ -68,6 +71,43 @@ export const DataConfigPanelItem = ({
       setConfigList({
         ...userConfigs.dataConfig,
       });
+    } else if (some(SPECIAL_RENDERING_VIZS, (visType) => visType === visualizations.vis.name)) {
+      // any vis that doesn't conform normal metrics/dimensions data confiurations
+      setConfigList({
+        ...DEFAULT_DATA_CONFIGS[visualizations.vis.name],
+      });
+    } else {
+      // default
+      const statsTokens = queryManager.queryParser().parse(data.query.rawQuery).getStats();
+      if (!statsTokens) {
+        setConfigList({
+          metrics: [],
+          dimensions: [],
+        });
+      } else {
+        const fieldInfo = statsTokens.groupby?.span?.span_expression?.field;
+        setConfigList({
+          metrics: statsTokens.aggregations.map((agg) => ({
+            alias: agg.alias,
+            label: agg.function?.value_expression,
+            name: agg.function?.value_expression,
+            aggregation: agg.function?.name,
+          })),
+          dimensions: statsTokens.groupby?.group_fields?.map((agg) => ({
+            label: agg.name ?? '',
+            name: agg.name ?? '',
+          })),
+          span: {
+            time_field: statsTokens.groupby?.span?.span_expression?.field
+              ? [getStandardedOuiField(fieldInfo, 'timestamp')]
+              : [],
+            interval: statsTokens.groupby?.span?.span_expression?.literal_value ?? '0',
+            unit: statsTokens.groupby?.span?.span_expression?.time_unit
+              ? [getStandardedOuiField(statsTokens.groupby?.span?.span_expression?.time_unit)]
+              : [],
+          },
+        });
+      }
     }
   }, [userConfigs?.dataConfig, visualizations.vis.name]);
 
@@ -76,7 +116,7 @@ export const DataConfigPanelItem = ({
     let listItem = { ...list[name][index] };
     listItem = {
       ...listItem,
-      [field === 'custom_label' ? 'alias' : field]: value,
+      [field]: value,
     };
     if (field === 'label') {
       listItem.name = value;
@@ -116,59 +156,77 @@ export const DataConfigPanelItem = ({
       ...configList,
       [name]: [
         ...configList[name],
-        name === 'metrics' ? initialMetricEntry : initialDimensionEntry,
+        name === AGGREGATIONS ? initialSeriesEntry : initialDimensionEntry,
       ],
     };
     setConfigList(list);
   };
 
-  const updateChart = (updatedConfigList = configList) => {
-    const statsTokens = qm.queryParser().parse(data.query.rawQuery).getStats();
-    const newQuery = qm
-      .queryBuilder()
-      .build(data.query.rawQuery, composeAggregations(updatedConfigList, statsTokens));
-
-    batch(async () => {
-      await handleQueryChange(newQuery);
-      await dispatch(
-        changeQuery({
-          tabId,
-          query: {
-            ...data.query,
-            [RAW_QUERY]: newQuery,
-          },
-        })
-      );
-      await fetchData();
-      await dispatch(
+  const updateChart = (updatedConfigList: ConfigList = configList) => {
+    if (visualizations.vis.name === VIS_CHART_TYPES.Histogram) {
+      dispatch(
         changeVizConfig({
           tabId,
-          vizId: visualizations.vis.name,
+          vizId: curVisId,
           data: {
+            ...userConfigs,
             dataConfig: {
-              metrics: updatedConfigList.metrics,
-              dimensions: updatedConfigList.dimensions,
-              breakdowns: updatedConfigList.breakdowns,
-              span: updatedConfigList.span,
+              ...userConfigs.dataConfig,
+              [GROUPBY]: configList[GROUPBY],
+              [AGGREGATIONS]: configList[AGGREGATIONS],
             },
           },
         })
       );
-    });
+    } else {
+      const statsTokens = queryManager!.queryParser().parse(data.query.rawQuery).getStats();
+      const newQuery = queryManager!
+        .queryBuilder()
+        .build(data.query.rawQuery, composeAggregations(updatedConfigList, statsTokens));
+
+      batch(async () => {
+        await handleQueryChange(newQuery);
+        await dispatch(
+          changeQuery({
+            tabId,
+            query: {
+              ...data.query,
+              [RAW_QUERY]: newQuery,
+            },
+          })
+        );
+        await fetchData();
+        await dispatch(
+          changeVizConfig({
+            tabId,
+            vizId: visualizations.vis.name,
+            data: {
+              dataConfig: {
+                ...userConfigs.dataConfig,
+                [GROUPBY]: configList[GROUPBY],
+                [AGGREGATIONS]: configList[AGGREGATIONS],
+                breakdowns: updatedConfigList.breakdowns,
+                span: updatedConfigList.span,
+              },
+            },
+          })
+        );
+      });
+    }
   };
 
   const isPositionButtonVisible = (sectionName: string) =>
-    sectionName === 'metrics' &&
-    (visualizations.vis.name === visChartTypes.Line ||
-      visualizations.vis.name === visChartTypes.Scatter);
+    sectionName === AGGREGATIONS &&
+    (visualizations.vis.name === VIS_CHART_TYPES.Line ||
+      visualizations.vis.name === VIS_CHART_TYPES.Scatter);
 
   const getOptionsAvailable = (sectionName: string) => {
     const selectedFields = {};
     const unselectedFields = fieldOptionList.filter((field) => !selectedFields[field.label]);
-    return sectionName === 'metrics'
+    return sectionName === AGGREGATIONS
       ? unselectedFields
-      : visualizations.vis.name === visChartTypes.Line ||
-        visualizations.vis.name === visChartTypes.Scatter
+      : visualizations.vis.name === VIS_CHART_TYPES.Line ||
+        visualizations.vis.name === VIS_CHART_TYPES.Scatter
       ? unselectedFields.filter((i) => i.type === 'timestamp')
       : unselectedFields;
   };
@@ -181,24 +239,30 @@ export const DataConfigPanelItem = ({
             <>
               <div key={index} className="services">
                 <div className="first-division">
-                  {sectionName === 'dimensions' &&
-                    visualizations.vis.name === visChartTypes.HeatMap && (
-                      <EuiTitle size="xxs">
-                        <h5>{index === 0 ? 'X-Axis' : 'Y-Axis'}</h5>
-                      </EuiTitle>
-                    )}
+                  {sectionName === GROUPBY && visualizations.vis.name === VIS_CHART_TYPES.HeatMap && (
+                    <EuiTitle size="xxs">
+                      <h5>{index === 0 ? 'X-Axis' : 'Y-Axis'}</h5>
+                    </EuiTitle>
+                  )}
                   <EuiPanel color="subdued" style={{ padding: '0px' }}>
-                    {sectionName === 'metrics' && (
+                    {sectionName === AGGREGATIONS && (
                       <EuiFormRow
                         label="Aggregation"
                         labelAppend={
-                          visualizations.vis.name !== visChartTypes.HeatMap && (
+                          visualizations.vis.name !== VIS_CHART_TYPES.HeatMap && (
                             <EuiText size="xs">
-                              <EuiIcon
-                                type="cross"
-                                color="danger"
-                                onClick={() => handleServiceRemove(index, sectionName)}
-                              />
+                              <EuiToolTip
+                                position="bottom"
+                                content="At least one metric is required to render a chart"
+                                delay="regular"
+                                anchorClassName="eui-textTruncate"
+                              >
+                                <EuiIcon
+                                  type="cross"
+                                  color="danger"
+                                  onClick={() => handleServiceRemove(index, sectionName)}
+                                />
+                              </EuiToolTip>
                             </EuiText>
                           )
                         }
@@ -225,8 +289,8 @@ export const DataConfigPanelItem = ({
                     <EuiFormRow
                       label="Field"
                       labelAppend={
-                        visualizations.vis.name !== visChartTypes.HeatMap &&
-                        sectionName !== 'metrics' && (
+                        visualizations.vis.name !== VIS_CHART_TYPES.HeatMap &&
+                        sectionName !== AGGREGATIONS && (
                           <EuiText size="xs">
                             <EuiIcon
                               type="cross"
@@ -251,9 +315,9 @@ export const DataConfigPanelItem = ({
                     <EuiFormRow label="Custom label">
                       <EuiFieldText
                         placeholder="Custom label"
-                        value={singleField.custom_label}
+                        value={singleField[CUSTOM_LABEL]}
                         onChange={(e) =>
-                          updateList(e.target.value, index, sectionName, 'custom_label')
+                          updateList(e.target.value, index, sectionName, CUSTOM_LABEL)
                         }
                         aria-label="Use aria labels when no actual label is in use"
                       />
@@ -281,7 +345,7 @@ export const DataConfigPanelItem = ({
               <EuiSpacer size="s" />
             </>
           ))}
-        {visualizations.vis.name !== visChartTypes.HeatMap && (
+        {visualizations.vis.name !== VIS_CHART_TYPES.HeatMap && (
           <EuiFlexItem grow>
             <EuiButton
               fullWidth
@@ -291,8 +355,8 @@ export const DataConfigPanelItem = ({
               onClick={() => handleServiceAdd(sectionName)}
               disabled={
                 sectionName === 'dimensions' &&
-                (visualizations.vis.name === visChartTypes.Line ||
-                  visualizations.vis.name === visChartTypes.Scatter)
+                (visualizations.vis.name === VIS_CHART_TYPES.Line ||
+                  visualizations.vis.name === VIS_CHART_TYPES.Scatter)
               }
             >
               Add
@@ -310,10 +374,8 @@ export const DataConfigPanelItem = ({
         fullWidth
         placeholder="auto"
         value={
-          configList?.dimensions &&
-          configList?.dimensions.length > 0 &&
-          configList.dimensions[0][type]
-            ? configList.dimensions[0][type]
+          configList[GROUPBY] && configList[GROUPBY].length > 0 && configList[GROUPBY][0][type]
+            ? configList[GROUPBY][0][type]
             : ''
         }
         onChange={(e) => updateHistogramConfig('dimensions', type, e.target.value)}
@@ -324,10 +386,10 @@ export const DataConfigPanelItem = ({
   );
 
   const getBreakDownFields = useCallback(
-    (configList) => {
-      return configList.dimensions;
+    (configList: ConfigList) => {
+      return configList[GROUPBY];
     },
-    [configList.dimensions]
+    [configList[GROUPBY]]
   );
 
   const Breakdowns = useMemo(() => {
@@ -341,7 +403,7 @@ export const DataConfigPanelItem = ({
                   aria-label="Accessible screen reader label"
                   placeholder="Select fields"
                   singleSelection={false}
-                  options={configList.dimensions}
+                  options={configList[GROUPBY]}
                   selectedOptions={configList.breakdowns ?? []}
                   onChange={(fields) => {
                     setConfigList((staleState) => {
@@ -358,7 +420,7 @@ export const DataConfigPanelItem = ({
         </div>
       </>
     );
-  }, [configList.dimensions, configList.breakdowns]);
+  }, [configList[GROUPBY], configList.breakdowns]);
 
   const DateHistogram = useMemo(() => {
     return (
@@ -445,31 +507,47 @@ export const DataConfigPanelItem = ({
   return (
     <>
       <EuiTitle size="xxs">
-        <h3>Data Configurations</h3>
+        <h3>Configuration</h3>
       </EuiTitle>
       <EuiSpacer size="s" />
-      {visualizations.vis.name !== visChartTypes.Histogram ? (
+      {visualizations.vis.name !== VIS_CHART_TYPES.Histogram ? (
         <>
-          <EuiTitle size="xxs">
-            <h3>Series</h3>
-          </EuiTitle>
+          <div style={{ display: 'flex' }}>
+            <EuiTitle size="xxs">
+              <h3>Series</h3>
+            </EuiTitle>
+            <EuiToolTip
+              position="right"
+              content="At least one metric is required to render a chart"
+              delay="regular"
+              anchorClassName="eui-textTruncate"
+            >
+              <EuiIcon type="iInCircle" color="text" size="m" className="info-icon" />
+            </EuiToolTip>
+          </div>
           <EuiSpacer size="s" />
-          {getCommonUI(configList.metrics, 'metrics')}
+          {getCommonUI(configList[AGGREGATIONS], AGGREGATIONS)}
           <EuiSpacer size="m" />
           <EuiTitle size="xxs">
             <h3>Dimensions</h3>
           </EuiTitle>
           <EuiSpacer size="s" />
-          {getCommonUI(configList.dimensions, 'dimensions')}
+          {getCommonUI(configList[GROUPBY], GROUPBY)}
           <EuiSpacer size="s" />
           <EuiTitle size="xxs">
             <h3>Date Histogram</h3>
           </EuiTitle>
           {DateHistogram}
-          {/* <EuiTitle size="xxs">
-            <h3>Breakdowns</h3>
-          </EuiTitle>
-          {Breakdowns} */}
+          <EuiSpacer size="s" />
+          {(visualizations.vis.name === VIS_CHART_TYPES.Bar ||
+            visualizations.vis.name === VIS_CHART_TYPES.HorizontalBar) && (
+            <>
+              <EuiTitle size="xxs">
+                <h3>Breakdowns</h3>
+              </EuiTitle>
+              {Breakdowns}
+            </>
+          )}
         </>
       ) : (
         <>

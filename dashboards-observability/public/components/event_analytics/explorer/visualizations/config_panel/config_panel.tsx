@@ -25,11 +25,7 @@ import { getDefaultSpec } from '../visualization_specs/default_spec';
 import { TabContext } from '../../../hooks';
 import { DefaultEditorControls } from './config_panel_footer';
 import { getVisType } from '../../../../visualizations/charts/vis_types';
-import {
-  ENABLED_VIS_TYPES,
-  ValueOptionsAxes,
-  visChartTypes,
-} from '../../../../../../common/constants/shared';
+import { ENABLED_VIS_TYPES, VIS_CHART_TYPES } from '../../../../../../common/constants/shared';
 import { VIZ_CONTAIN_XY_AXIS } from '../../../../../../common/constants/explorer';
 
 const CONFIG_LAYOUT_TEMPLATE = `
@@ -108,7 +104,7 @@ export const ConfigPanel = ({
   // To check, If user empty any of the value options
   const isValidValueOptionConfigSelected = useMemo(() => {
     const valueOptions = vizConfigs.dataConfig?.valueOptions;
-    const { TreeMap, Gauge, HeatMap } = visChartTypes;
+    const { TreeMap, Gauge, HeatMap, Stats } = VIS_CHART_TYPES;
     const isValidValueOptionsXYAxes =
       VIZ_CONTAIN_XY_AXIS.includes(curVisId) &&
       valueOptions?.xaxis?.length !== 0 &&
@@ -119,7 +115,7 @@ export const ConfigPanel = ({
         curVisId === TreeMap &&
         valueOptions?.childField?.length !== 0 &&
         valueOptions?.valueField?.length !== 0,
-      gauge: true,
+      gauge: curVisId === Gauge && valueOptions?.yaxis?.length !== 0,
       heatmap: Boolean(
         curVisId === HeatMap && valueOptions?.metrics && valueOptions.metrics?.length !== 0
       ),
@@ -129,6 +125,7 @@ export const ConfigPanel = ({
       pie: isValidValueOptionsXYAxes,
       scatter: isValidValueOptionsXYAxes,
       logs_view: true,
+      stats: curVisId === Stats && valueOptions?.yaxis?.length !== 0,
     };
     return isValid_valueOptions[curVisId];
   }, [vizConfigs.dataConfig]);
@@ -229,7 +226,7 @@ export const ConfigPanel = ({
   const memorizedVisualizationTypes = useMemo(
     () =>
       ENABLED_VIS_TYPES.map((vs: string) =>
-        vs === visChartTypes.Line || vs === visChartTypes.Scatter
+        vs === VIS_CHART_TYPES.Line || vs === VIS_CHART_TYPES.Scatter
           ? getVisType(vs, { type: vs })
           : getVisType(vs)
       ),
@@ -253,7 +250,7 @@ export const ConfigPanel = ({
       const selectedOption = find(memorizedVisualizationTypes, (v) => {
         return v.id === visId;
       });
-      selectedOption['iconType'] = selectedOption.icontype;
+      selectedOption.iconType = selectedOption.icontype;
       return selectedOption;
     },
     [memorizedVisualizationTypes]
@@ -264,50 +261,30 @@ export const ConfigPanel = ({
   }, [memorizedVisualizationTypes]);
 
   return (
-    <>
-      <EuiFlexGroup
-        className="visEditorSidebar"
-        direction="column"
-        justifyContent="spaceBetween"
-        gutterSize="none"
-        responsive={false}
-      >
-        <EuiFlexItem data-test-subj="configPane__vizTypeSelector">
-          <EuiSpacer size="s" />
-          <EuiComboBox
-            aria-label="config chart selector"
-            placeholder="Select a chart"
-            options={vizTypeList}
-            selectedOptions={[getSelectedVisDById(curVisId)]}
-            singleSelection
-            onChange={(visType) => {
-              setCurVisId(visType[0].id);
-            }}
-            fullWidth
-            renderOption={vizSelectableItemRenderer}
-            isClearable={false}
-          />
-          <EuiSpacer size="xs" />
-        </EuiFlexItem>
-        <EuiFlexItem>
-          <EuiPanel paddingSize="s" className="configPane_options">
-            <EuiTabbedContent
-              className="vis-config-tabs"
-              tabs={tabs}
-              selectedTab={tabs.find((tab) => tab.id === currTabId) || tabs[0]}
-              onTabClick={onTabClick}
-            />
-          </EuiPanel>
-        </EuiFlexItem>
-        <EuiFlexItem grow={false}>
-          <DefaultEditorControls
-            isDirty={true}
-            isInvalid={false}
-            onConfigUpdate={handleConfigUpdate}
-            onConfigDiscard={handleDiscardConfig}
-          />
-        </EuiFlexItem>
-      </EuiFlexGroup>
-    </>
+    <div className="cp__rightContainer">
+      <div className="cp__rightHeader">
+        <EuiComboBox
+          aria-label="config chart selector"
+          placeholder="Select a chart"
+          options={vizTypeList}
+          selectedOptions={[getSelectedVisDById(curVisId)]}
+          singleSelection
+          onChange={(visType) => {
+            setCurVisId(visType[0].id);
+          }}
+          fullWidth
+          renderOption={vizSelectableItemRenderer}
+          isClearable={false}
+        />
+      </div>
+      <div className="cp__rightSettings">
+        <EuiTabbedContent
+          className="vis-config-tabs"
+          tabs={tabs}
+          selectedTab={tabs.find((tab) => tab.id === currTabId) || tabs[0]}
+          onTabClick={onTabClick}
+        />
+      </div>
+    </div>
   );
 };

@@ -16,6 +16,8 @@ import {
   FINAL_QUERY,
   SELECTED_TIMESTAMP,
   SELECTED_DATE_RANGE,
+  GROUPBY,
+  AGGREGATIONS,
 } from '../constants/explorer';
 import {
   CoreStart,
@@ -97,7 +99,7 @@ export interface ILogExplorerProps {
   ) => void;
   savedObjectId: string;
   getExistingEmptyTab: (params: EmptyTabParams) => string;
-  qm: QueryManager;
+  queryManager: QueryManager;
 }
 
 export interface IExplorerProps {
@@ -128,7 +130,7 @@ export interface IExplorerProps {
   appBaseQuery?: string;
   callback?: any;
   callbackInApp?: any;
-  qm: QueryManager;
+  queryManager: QueryManager;
 }
 
 export interface SavedQuery {
@@ -280,6 +282,7 @@ export interface ConfigListEntry {
   name: string;
   side: string;
   type: string;
+  alias?: string;
 }
 
 export interface HistogramConfigList {
@@ -294,8 +297,8 @@ export interface DimensionSpan {
 }
 
 export interface ConfigList {
-  dimensions?: ConfigListEntry[] | HistogramConfigList[];
-  metrics?: ConfigListEntry[];
+  [GROUPBY]?: ConfigListEntry[] | HistogramConfigList[];
+  [AGGREGATIONS]?: ConfigListEntry[];
   breakdowns?: ConfigListEntry[] | HistogramConfigList[];
   span?: DimensionSpan;
 }
@@ -314,11 +317,15 @@ export interface EventAnalyticsProps {
   timestampUtils: TimestampUtils;
   http: HttpStart;
   notifications: NotificationsStart;
-  qm: QueryManager;
+  queryManager: QueryManager;
 }
 
 export interface DataConfigPanelProps {
   fieldOptionList: IField[];
   visualizations: IVisualizationContainerProps;
-  qm?: QueryManager;
+  queryManager?: QueryManager;
+}
+export interface GetTooltipHoverInfoType {
+  tooltipMode: string;
+  tooltipText: string;
 }

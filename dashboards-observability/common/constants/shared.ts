@@ -2,9 +2,8 @@
  * Copyright OpenSearch Contributors
  * SPDX-License-Identifier: Apache-2.0
  */
-
-import { IField } from '../../common/types/explorer';
 import CSS from 'csstype';
+import { IField } from '../../common/types/explorer';
 
 // Client route
 export const PPL_BASE = '/api/ppl';
@@ -72,7 +71,7 @@ export const pageStyles: CSS.Properties = {
   maxWidth: '1130px',
 };
 
-export enum visChartTypes {
+export enum VIS_CHART_TYPES {
   Bar = 'bar',
   HorizontalBar = 'horizontal_bar',
   Line = 'line',
@@ -84,35 +83,27 @@ export enum visChartTypes {
   TreeMap = 'tree_map',
   Scatter = 'scatter',
   LogsView = 'logs_view',
-}
-
-export interface ValueOptionsAxes {
-  xaxis?: IField[];
-  yaxis?: IField[];
-  zaxis?: IField[];
-  childField?: IField[];
-  valueField?: IField[];
-  series?: IField[];
-  value?: IField[];
+  Stats = 'stats',
 }
 
 export const NUMERICAL_FIELDS = ['short', 'integer', 'long', 'float', 'double'];
 
 export const ENABLED_VIS_TYPES = [
-  visChartTypes.Bar,
-  visChartTypes.HorizontalBar,
-  visChartTypes.Line,
-  visChartTypes.Pie,
-  visChartTypes.HeatMap,
-  visChartTypes.Text,
-  visChartTypes.TreeMap,
-  visChartTypes.Gauge,
-  visChartTypes.Histogram,
-  visChartTypes.Scatter,
-  visChartTypes.LogsView,
+  VIS_CHART_TYPES.Bar,
+  VIS_CHART_TYPES.HorizontalBar,
+  VIS_CHART_TYPES.Line,
+  VIS_CHART_TYPES.Pie,
+  VIS_CHART_TYPES.HeatMap,
+  VIS_CHART_TYPES.Text,
+  VIS_CHART_TYPES.TreeMap,
+  VIS_CHART_TYPES.Gauge,
+  VIS_CHART_TYPES.Histogram,
+  VIS_CHART_TYPES.Scatter,
+  VIS_CHART_TYPES.LogsView,
+  VIS_CHART_TYPES.Stats,
 ];
 
-//Live tail constants
+// Live tail constants
 export const LIVE_OPTIONS = [
   {
     label: '5s',
@@ -175,7 +166,7 @@ export interface DefaultChartStylesProps {
   DefaultModeScatter: string;
 }
 
-export const DefaultChartStyles: DefaultChartStylesProps = {
+export const DEFAULT_CHART_STYLES: DefaultChartStylesProps = {
   DefaultModeLine: 'lines',
   Interpolation: 'spline',
   LineWidth: 2,

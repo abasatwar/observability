@@ -8,11 +8,16 @@ import { uniqueId } from 'lodash';
 import React from 'react';
 import moment from 'moment';
 import dateMath from '@elastic/datemath';
-import { IExplorerFields, IField } from '../../../../common/types/explorer';
+import {
+  IExplorerFields,
+  IField,
+  GetTooltipHoverInfoType,
+  ConfigListEntry,
+} from '../../../../common/types/explorer';
 import { DocViewRow, IDocType } from '../explorer/events_views';
 import { HttpStart } from '../../../../../../src/core/public';
 import PPLService from '../../../services/requests/ppl';
-import { TIME_INTERVAL_OPTIONS } from '../../../../common/constants/explorer';
+import { CUSTOM_LABEL, TIME_INTERVAL_OPTIONS } from '../../../../common/constants/explorer';
 import { PPL_DATE_FORMAT, PPL_INDEX_REGEX } from '../../../../common/constants/shared';
 import { ConfigTooltip } from '../explorer/visualizations/config_panel/config_panes/config_controls';
 
@@ -121,8 +126,8 @@ export const populateDataGrid = (
           </table>
         )}
         {explorerFields?.queriedFields &&
-          explorerFields?.queriedFields?.length > 0 &&
-          explorerFields.selectedFields?.length === 0 ? null : (
+        explorerFields?.queriedFields?.length > 0 &&
+        explorerFields.selectedFields?.length === 0 ? null : (
           <table className="osd-table table" data-test-subj="docTable">
             <thead>{header2}</thead>
             <tbody>{body2}</tbody>
@@ -353,4 +358,31 @@ export const fetchConfigObject = (editor: string, propsOptions: any) => {
     default:
       return null;
   }
+};
+
+export const getTooltipHoverInfo = ({ tooltipMode, tooltipText }: GetTooltipHoverInfoType) => {
+  if (tooltipMode === 'hidden') {
+    return 'none';
+  }
+  if (tooltipText === undefined) {
+    return 'all';
+  }
+  return tooltipText;
+};
+
+export const filterDataConfigParameter = (parameter: ConfigListEntry[]) =>
+  parameter.filter((configItem: ConfigListEntry) => configItem.label);
+
+export const getRoundOf = (value: number, places: number) => value.toFixed(places);
+
+export const getPropName = (queriedVizObj: {
+  customLabel?: string;
+  aggregation: string;
+  name: string;
+  label: string;
+}) => {
+  if (queriedVizObj[CUSTOM_LABEL] === '' || queriedVizObj[CUSTOM_LABEL] === undefined) {
+    return `${queriedVizObj.aggregation}(${queriedVizObj.name})`;
+  }
+  return queriedVizObj[CUSTOM_LABEL];
 };
